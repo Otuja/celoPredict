@@ -3,32 +3,37 @@
 // CELOPREDICT - HACKATHON CONFIGURATION
 // ==========================================
 
-// ⚠️ SECURITY WARNING: 
-// We are hardcoding the PRIVATE KEY here to ensure the Hackathon Demo works 
-// perfectly without environment variable issues in the web preview.
-// DO NOT commit this file with the real private key to a public GitHub repo 
-// unless you intend to burn this wallet.
+// Helper to safely access environment variables in Vite/Browser
+const getEnv = (key: string, fallback: string | boolean): any => {
+  try {
+    // @ts-ignore
+    return import.meta.env[key] || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 
 // 1. FORCE HACKATHON MODE (Bypasses MetaMask/Valora)
 // set to TRUE for the Hackathon Demo so it works on all devices immediately
-export const IS_HACKATHON_MODE = true;
+export const IS_HACKATHON_MODE = getEnv('VITE_IS_HACKATHON_MODE', true) === 'true' || getEnv('VITE_IS_HACKATHON_MODE', true) === true;
 
 // 2. YOUR PRIVATE KEY (Corresponds to 0x9af1...)
-export const HACKATHON_PRIVATE_KEY = "5aa942a429572831ec4895a85a6c62225835a7edd97a961432a9968ec1b641e6";
+// We try to read from .env first. If that fails (preview mode), we fall back to the hardcoded string.
+export const HACKATHON_PRIVATE_KEY = getEnv('VITE_HACKATHON_PRIVATE_KEY', "5aa942a429572831ec4895a85a6c62225835a7edd97a961432a9968ec1b641e6");
 
 // 3. SMART CONTRACT ADDRESS
-export const CONTRACT_ADDRESS = "0x630fcEBE028f80C4420E5684ACab17b001ce4975";
+export const CONTRACT_ADDRESS = getEnv('VITE_CONTRACT_ADDRESS', "0x630fcEBE028f80C4420E5684ACab17b001ce4975");
 
 // 4. ADMIN WALLET ADDRESS
-export const ADMIN_ADDRESS = "0x9af10ad426d5d807f3309e1a3ca321332e2f54a5";
+export const ADMIN_ADDRESS = getEnv('VITE_ADMIN_ADDRESS', "0x9af10ad426d5d807f3309e1a3ca321332e2f54a5");
 
 // ==========================================
 // NETWORK CONFIGURATION
 // ==========================================
 
 export const CELO_CHAIN_ID = 11142220; 
-export const RPC_URL = "https://forno.celo-sepolia.celo-testnet.org";
-export const BLOCK_EXPLORER = "https://celo-sepolia.blockscout.com";
+export const RPC_URL = getEnv('VITE_RPC_URL', "https://forno.celo-sepolia.celo-testnet.org");
+export const BLOCK_EXPLORER = getEnv('VITE_BLOCK_EXPLORER', "https://celo-sepolia.blockscout.com");
 
 export const ENTRY_FEE_DISPLAY = "0.5 CELO";
 
