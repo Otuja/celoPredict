@@ -5,43 +5,42 @@ import { CONTRACT_ABI, CONTRACT_ADDRESS, RPC_URL, HACKATHON_PRIVATE_KEY } from '
 // Global Provider for Read-Only access
 const jsonProvider = new ethers.JsonRpcProvider(RPC_URL);
 
+// State to track if user explicitly wants to use real wallet
+let useRealWallet = false;
+
+export const setWalletPreference = (enable: boolean) => {
+    useRealWallet = enable;
+};
+
 // --- 1. ADMIN SIGNER (ALWAYS PRIVATE KEY) ---
-// This ensures Admin actions (Create, Settle) never fail,
-// even if the user has connected a non-admin personal wallet.
+// This ensures Admin actions (Create, Settle) never fail
 export const getAdminSigner = () => {
     if (!HACKATHON_PRIVATE_KEY) throw new Error("No Admin Private Key found.");
     return new ethers.Wallet(HACKATHON_PRIVATE_KEY, jsonProvider);
 };
 
 // --- 2. USER SIGNER (HYBRID) ---
-// Used for Betting and Claiming.
-// Priority: Browser Wallet (MetaMask/MiniPay/Valora) -> Fallback: Dev Wallet (Private Key)
 export const getUserSigner = async () => {
     // @ts-ignore
     const injectedProvider = window.ethereum || window.celo;
 
-    // A. Try Browser Wallet (Real User)
-    if (injectedProvider) {
+    // Only try browser wallet if user EXPLICITLY requested it AND it exists
+    if (useRealWallet && injectedProvider) {
         try {
-            // Request account access
             const provider = new ethers.BrowserProvider(injectedProvider);
-            // This triggers the popup in MetaMask/MiniPay
             const signer = await provider.getSigner(); 
             return signer;
         } catch (e) {
-            console.warn("Browser wallet connection failed or rejected. Falling back to Dev Wallet.");
+            console.warn("Browser wallet connection failed. Falling back to Dev Wallet.");
+            useRealWallet = false; // Reset preference on failure
         }
     }
 
-    // B. Fallback to Dev Wallet (Guest/Judge Mode)
-    // If no wallet is installed, or user rejected connection, use the dev key
+    // Default: Dev Wallet (Silent, no popup)
     return getAdminSigner();
 };
 
 // --- CONTRACT HELPERS ---
-
-// getContract(true) -> Forces Admin Key (Create Match, Settle)
-// getContract(false) -> Tries User Wallet first (Bet, Claim)
 export const getContract = async (asAdmin: boolean = false) => {
   const signer = asAdmin ? getAdminSigner() : await getUserSigner();
   return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);

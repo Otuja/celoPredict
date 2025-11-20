@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getUserBalance, getUserSigner } from '../services/blockchain';
+import { getUserBalance, getUserSigner, setWalletPreference } from '../services/blockchain';
 import { ethers } from 'ethers';
 
 interface BlockchainContextType {
@@ -8,8 +8,8 @@ interface BlockchainContextType {
   userBalance: string;
   isConnected: boolean;
   isConnecting: boolean;
-  isDevWallet: boolean; // True if using fallback key, False if using MetaMask
-  connectWallet: () => Promise<void>;
+  isDevWallet: boolean;
+  connectWallet: (useReal?: boolean) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -19,7 +19,7 @@ export const BlockchainProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [userBalance, setUserBalance] = useState<string>("0.00");
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isDevWallet, setIsDevWallet] = useState(false);
+  const [isDevWallet, setIsDevWallet] = useState(true);
 
   const refreshData = useCallback(async () => {
     if (currentAccount) {
@@ -28,36 +28,39 @@ export const BlockchainProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [currentAccount]);
 
-  const connectWallet = async () => {
+  const connectWallet = async (useReal: boolean = false) => {
     setIsConnecting(true);
     try {
+        // 1. Set Preference
+        setWalletPreference(useReal);
+        
+        // 2. Get Signer (Will popup if useReal is true)
         const signer = await getUserSigner();
         const address = await signer.getAddress();
         
-        // Determine connection type
-        // @ts-ignore
-        const hasInjectedProvider = !!(window.ethereum || window.celo);
-        // Check if the returned signer is actually a BrowserProvider signer
+        // 3. Verify what we got
         const isBrowserSigner = signer.provider instanceof ethers.BrowserProvider;
         
-        // Logic: It's a real wallet ONLY IF an injected provider exists AND we are using it
-        const usingRealWallet = hasInjectedProvider && isBrowserSigner;
+        // If we asked for Real but got Dev (user rejected), update state
+        const actuallyUsingReal = useReal && isBrowserSigner;
         
-        setIsDevWallet(!usingRealWallet);
+        setIsDevWallet(!actuallyUsingReal);
         setCurrentAccount(address);
         
         const balance = await getUserBalance(address);
         setUserBalance(balance);
     } catch (error) {
         console.error("Failed to connect wallet", error);
+        // Fallback to dev if explicit connection failed
+        if (useReal) connectWallet(false);
     } finally {
         setIsConnecting(false);
     }
   };
 
-  // Auto-connect on mount
+  // Auto-connect on mount (Silent Dev Mode)
   useEffect(() => {
-    connectWallet();
+    connectWallet(false);
   }, []);
 
   // Listen for account changes (Only relevant for Real Wallets)
@@ -70,8 +73,7 @@ export const BlockchainProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                  setCurrentAccount(accounts[0]);
                  refreshData();
              } else {
-                 // User disconnected wallet, fallback to Dev Wallet
-                 connectWallet();
+                 connectWallet(false); // Fallback to dev
              }
          });
          
@@ -82,12 +84,10 @@ export const BlockchainProvider: React.FC<{ children: React.ReactNode }> = ({ ch
      }
   }, [isDevWallet, refreshData]);
 
-  // Polling for balance updates
+  // Polling
   useEffect(() => {
     if(!currentAccount) return;
-    const interval = setInterval(() => {
-        refreshData();
-    }, 5000);
+    const interval = setInterval(() => refreshData(), 5000);
     return () => clearInterval(interval);
   }, [currentAccount, refreshData]);
 

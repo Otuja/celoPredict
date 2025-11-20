@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Wallet as WalletIcon, Award, Users, ExternalLink, Zap, RefreshCw } from 'lucide-react';
+import { Wallet as WalletIcon, Award, Users, ExternalLink, Zap, RefreshCw, Smartphone } from 'lucide-react';
 import { useBlockchain } from '../contexts/BlockchainContext';
 import { formatCurrency } from '../services/blockchain';
 
@@ -10,7 +10,7 @@ interface WalletProps {
 }
 
 const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
-  const { isConnected, currentAccount, userBalance, connectWallet, isConnecting, refreshData } = useBlockchain();
+  const { isConnected, currentAccount, userBalance, connectWallet, isConnecting, refreshData, isDevWallet } = useBlockchain();
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 px-4 pt-8 pb-32">
@@ -29,32 +29,50 @@ const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
            <WalletIcon size={48} className="mx-auto text-gray-600 mb-4" />
            <p className="text-gray-400 mb-6">Connecting to Celo Network...</p>
            <button 
-             onClick={() => connectWallet()}
+             onClick={() => connectWallet(false)}
              disabled={isConnecting}
              className="w-full py-4 bg-celo-green text-black font-bold rounded-xl hover:bg-emerald-400 transition-colors disabled:opacity-50"
            >
-             {isConnecting ? "Connecting..." : "Retry Connection"}
+             Retry Connection
            </button>
         </div>
       ) : (
         <div className="space-y-4">
            {/* Balance Card */}
-           <div className={`rounded-3xl p-6 text-black relative overflow-hidden shadow-lg bg-gradient-to-br from-celo-green to-emerald-800 shadow-celo-green/20`}>
+           <div className={`rounded-3xl p-6 text-black relative overflow-hidden shadow-lg ${isDevWallet ? 'bg-gradient-to-br from-celo-gold to-orange-600' : 'bg-gradient-to-br from-celo-green to-emerald-800'}`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
               <div className="relative z-10">
                 <div className="flex justify-between items-start">
                     <div className="text-sm font-bold opacity-70 mb-1">Total Balance</div>
                     <div className="text-[10px] font-bold bg-black/20 px-2 py-1 rounded text-white flex items-center gap-1">
-                        <Zap size={10} className="text-celo-gold" /> DEV WALLET
+                        {isDevWallet ? <Zap size={10} className="text-yellow-300" /> : <Smartphone size={10} />}
+                        {isDevWallet ? 'DEV WALLET' : 'PERSONAL WALLET'}
                     </div>
                 </div>
                 <div className="text-4xl font-bold tracking-tight mb-4">{parseFloat(userBalance).toFixed(2)} <span className="text-lg">CELO</span></div>
                 <div className="flex items-center gap-2 text-xs font-medium bg-black/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                  <div className={`w-2 h-2 rounded-full animate-pulse bg-green-900`}></div>
+                  <div className="w-2 h-2 rounded-full animate-pulse bg-white"></div>
                   Celo Sepolia Testnet
                 </div>
               </div>
            </div>
+           
+           {/* Switch Wallet Button */}
+           {isDevWallet ? (
+               <button 
+                 onClick={() => connectWallet(true)}
+                 className="w-full py-3 bg-[#1A1A1A] border border-celo-green/30 text-celo-green font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-celo-green/10 transition-all"
+               >
+                  <Smartphone size={18} /> Connect Personal Wallet
+               </button>
+           ) : (
+               <button 
+                 onClick={() => connectWallet(false)}
+                 className="w-full py-3 bg-[#1A1A1A] border border-gray-700 text-gray-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all"
+               >
+                  <Zap size={18} /> Switch to Dev Wallet
+               </button>
+           )}
 
            {/* Winnings Card */}
            <div className="bg-[#1A1A1A] rounded-3xl p-6 border border-gray-800">
@@ -87,24 +105,6 @@ const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
                 </button>
               </span>
            </div>
-
-           {/* Faucet Link */}
-           <a 
-             href="https://faucet.celo.org/" 
-             target="_blank" 
-             rel="noreferrer"
-             className="block bg-[#1A1A1A] rounded-2xl p-4 border border-gray-800 hover:bg-gray-800 transition-colors"
-           >
-              <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
-                        <ExternalLink size={14} className="text-celo-green" />
-                     </div>
-                     <div className="text-sm text-gray-300">Need Testnet Funds?</div>
-                  </div>
-                  <div className="text-xs font-bold text-celo-green">Go to Faucet &rarr;</div>
-              </div>
-           </a>
         </div>
       )}
     </div>
