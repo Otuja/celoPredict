@@ -34,6 +34,40 @@ We solved the biggest UX hurdle in Web3: **Onboarding friction.**
 
 ---
 
+## 💻 Local Development / Installation
+
+If you are a developer or judge cloning this repo to run locally, follow these steps:
+
+### Prerequisites
+*   Node.js (v18+)
+*   npm or yarn
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/YOUR_USERNAME/celo-predict.git
+cd celo-predict
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Configure Environment
+Create a `.env` file in the root directory. You can use the example provided:
+```bash
+cp .env.example .env
+```
+*Note: For the Hackathon Demo, the app includes a fallback "Dev Wallet" private key in the code so it works out-of-the-box. For production, ensure you set `VITE_IS_HACKATHON_MODE=false` in the .env file.*
+
+### 4. Run the App
+```bash
+npm run dev
+```
+Open your browser to `http://localhost:5173`.
+
+---
+
 ## 🎮 How to Demo (60-Second Walkthrough)
 
 **Role: Judge / Admin**
