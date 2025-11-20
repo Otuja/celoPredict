@@ -2,7 +2,7 @@
 import React from 'react';
 import { Wallet as WalletIcon, Award, Users, ExternalLink, Zap, RefreshCw, Smartphone } from 'lucide-react';
 import { useBlockchain } from '../contexts/BlockchainContext';
-import { formatCurrency } from '../services/blockchain';
+import { formatCurrency, isMiniPay } from '../services/blockchain';
 
 interface WalletProps {
   userWinnings: string;
@@ -11,6 +11,8 @@ interface WalletProps {
 
 const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
   const { isConnected, currentAccount, userBalance, connectWallet, isConnecting, refreshData, isDevWallet } = useBlockchain();
+
+  const isMiniPayActive = isMiniPay();
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 px-4 pt-8 pb-32">
@@ -45,8 +47,13 @@ const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
                 <div className="flex justify-between items-start">
                     <div className="text-sm font-bold opacity-70 mb-1">Total Balance</div>
                     <div className="text-[10px] font-bold bg-black/20 px-2 py-1 rounded text-white flex items-center gap-1">
-                        {isDevWallet ? <Zap size={10} className="text-yellow-300" /> : <Smartphone size={10} />}
-                        {isDevWallet ? 'DEV WALLET' : 'PERSONAL WALLET'}
+                        {isDevWallet ? (
+                            <><Zap size={10} className="text-yellow-300" /> DEV WALLET</>
+                        ) : isMiniPayActive ? (
+                            <><Smartphone size={10} /> MINIPAY</>
+                        ) : (
+                            <><Smartphone size={10} /> PERSONAL WALLET</>
+                        )}
                     </div>
                 </div>
                 <div className="text-4xl font-bold tracking-tight mb-4">{parseFloat(userBalance).toFixed(2)} <span className="text-lg">CELO</span></div>
@@ -58,20 +65,27 @@ const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
            </div>
            
            {/* Switch Wallet Button */}
-           {isDevWallet ? (
-               <button 
-                 onClick={() => connectWallet(true)}
-                 className="w-full py-3 bg-[#1A1A1A] border border-celo-green/30 text-celo-green font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-celo-green/10 transition-all"
-               >
-                  <Smartphone size={18} /> Connect Personal Wallet
-               </button>
-           ) : (
-               <button 
-                 onClick={() => connectWallet(false)}
-                 className="w-full py-3 bg-[#1A1A1A] border border-gray-700 text-gray-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all"
-               >
-                  <Zap size={18} /> Switch to Dev Wallet
-               </button>
+           {!isMiniPayActive && (
+               isDevWallet ? (
+                   <button 
+                     onClick={() => connectWallet(true)}
+                     className="w-full py-3 bg-[#1A1A1A] border border-celo-green/30 text-celo-green font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-celo-green/10 transition-all"
+                   >
+                      <Smartphone size={18} /> Connect Personal Wallet
+                   </button>
+               ) : (
+                   <button 
+                     onClick={() => connectWallet(false)}
+                     className="w-full py-3 bg-[#1A1A1A] border border-gray-700 text-gray-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all"
+                   >
+                      <Zap size={18} /> Switch to Dev Wallet
+                   </button>
+               )
+           )}
+           {isMiniPayActive && (
+               <div className="w-full py-3 bg-gray-900 border border-gray-800 text-gray-500 font-bold rounded-xl flex items-center justify-center gap-2">
+                   <Smartphone size={18} /> Connected with MiniPay
+               </div>
            )}
 
            {/* Winnings Card */}

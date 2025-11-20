@@ -12,6 +12,12 @@ export const setWalletPreference = (enable: boolean) => {
     useRealWallet = enable;
 };
 
+// Check if running in MiniPay
+export const isMiniPay = () => {
+    // @ts-ignore
+    return window.ethereum && window.ethereum.isMiniPay;
+};
+
 // --- 1. ADMIN SIGNER (ALWAYS PRIVATE KEY) ---
 // This ensures Admin actions (Create, Settle) never fail
 export const getAdminSigner = () => {
@@ -24,15 +30,18 @@ export const getUserSigner = async () => {
     // @ts-ignore
     const injectedProvider = window.ethereum || window.celo;
 
-    // Only try browser wallet if user EXPLICITLY requested it AND it exists
-    if (useRealWallet && injectedProvider) {
+    // MiniPay Auto-Detection: If inside MiniPay, always try to use it first
+    if (isMiniPay() || (useRealWallet && injectedProvider)) {
         try {
             const provider = new ethers.BrowserProvider(injectedProvider);
             const signer = await provider.getSigner(); 
             return signer;
         } catch (e) {
-            console.warn("Browser wallet connection failed. Falling back to Dev Wallet.");
-            useRealWallet = false; // Reset preference on failure
+            console.warn("Wallet connection failed. Falling back to Dev Wallet.");
+            // Only reset preference if NOT in MiniPay (MiniPay users should retry)
+            if (!isMiniPay()) {
+                useRealWallet = false;
+            }
         }
     }
 
