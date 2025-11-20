@@ -10,6 +10,7 @@
 // unless you intend to burn this wallet.
 
 // 1. FORCE HACKATHON MODE (Bypasses MetaMask/Valora)
+// set to TRUE for the Hackathon Demo so it works on all devices immediately
 export const IS_HACKATHON_MODE = true;
 
 // 2. YOUR PRIVATE KEY (Corresponds to 0x9af1...)
@@ -40,6 +41,7 @@ export const CONTRACT_ABI = [
   "function predictMatch(uint256 _matchId, uint8 _homeScore, uint8 _awayScore) external payable",
   "function submitResult(uint256 _matchId, uint8 _homeScore, uint8 _awayScore) external",
   "function claimWinnings() external",
+  "function withdrawPlatformFees() external",
   
   // Read functions
   "function matches(uint256) external view returns (uint256 id, string homeTeam, string awayTeam, uint256 kickoffTime, uint256 prizePool, bool resultsSubmitted, uint8 finalHomeScore, uint8 finalAwayScore, bool prizesDistributed)",

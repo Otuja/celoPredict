@@ -1,6 +1,5 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
-import { Trophy, Clock, Coins, ChevronRight, CheckCircle2, Lock } from 'lucide-react';
+import { Trophy, Clock, Coins, ChevronRight, CheckCircle2, Lock, Radio } from 'lucide-react';
 import { Match, Prediction } from '../types';
 import { formatCurrency, formatTimestamp } from '../services/blockchain';
 import { useBlockchain } from '../contexts/BlockchainContext';
@@ -17,7 +16,7 @@ const Home: React.FC<HomeProps> = ({ matches, myPredictions, isLoading, onSelect
   const [now, setNow] = useState(Date.now() / 1000);
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now() / 1000), 60000);
+    const interval = setInterval(() => setNow(Date.now() / 1000), 5000); // Update every 5s for live indicators
     return () => clearInterval(interval);
   }, []);
 
@@ -85,6 +84,7 @@ const Home: React.FC<HomeProps> = ({ matches, myPredictions, isLoading, onSelect
 
         {sortedMatches.map((match) => {
           const isClosed = now > Number(match.kickoffTime);
+          const isLive = isClosed && !match.resultsSubmitted;
           const alreadyPredicted = isPredicted(match.id);
           const myPred = getPrediction(match.id);
           
@@ -100,8 +100,16 @@ const Home: React.FC<HomeProps> = ({ matches, myPredictions, isLoading, onSelect
                 {/* Status Bar */}
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-1.5 text-xs font-medium text-gray-400">
-                        <Clock size={14} />
-                        <span>{formatTimestamp(match.kickoffTime)}</span>
+                        {isLive ? (
+                          <div className="flex items-center gap-2 text-red-500 font-bold animate-pulse">
+                            <Radio size={14} /> LIVE NOW
+                          </div>
+                        ) : (
+                          <>
+                            <Clock size={14} />
+                            <span>{formatTimestamp(match.kickoffTime)}</span>
+                          </>
+                        )}
                     </div>
                     <div className="flex items-center gap-1.5 text-celo-gold text-xs font-bold bg-celo-gold/10 px-2.5 py-1 rounded-lg">
                         <Coins size={14} />

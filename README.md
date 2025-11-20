@@ -1,35 +1,73 @@
 
 # ⚽ CeloPredict
 
-**CeloPredict** is a mobile-first, decentralized soccer prediction market built on the **Celo Blockchain**. Users can predict exact match scores using native CELO tokens, compete on leaderboards, and win from the prize pool if their predictions are correct.
+**The Mobile-First Prediction Market for Emerging Markets.**
 
 ![Celo Network](https://img.shields.io/badge/Network-Celo%20Sepolia-green)
 ![Status](https://img.shields.io/badge/Status-Hackathon%20Demo-orange)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
+## 💡 The Pitch
+
+Current betting platforms are centralized, opaque, and often inaccessible in emerging economies due to banking restrictions. **CeloPredict** solves this by bringing sports prediction on-chain, leveraging Celo's fast block times and low fees to create a transparent, trustless prediction market.
+
+We built CeloPredict with a **"Mobile-First" philosophy**. It mimics the smooth UX of Web2 apps like *LiveScore* or *OneFootball*, but with the power of DeFi under the hood. It is designed to run seamlessly on low-bandwidth mobile devices, making it perfect for the Celo ecosystem's target audience.
+
 ## 🚀 Key Features
 
-*   **Mobile-First Design**: A native-app-like experience with bottom navigation, touch-friendly inputs, and smooth transitions.
-*   **On-Chain Betting**: All predictions, prize pools, and settlements happen on the Celo smart contract.
-*   **Exact Score Prediction**: Users predict home and away scores (e.g., 2-1).
-*   **Automated Settlements**: Admin oracle settles matches, and the smart contract calculates winners automatically.
-*   **Instant Payouts**: Winners claim their share of the pot directly to their wallet.
+*   **📱 Native App Experience**: A bottom-navigation layout, glassmorphic UI, and touch-optimized inputs that feel like a native mobile app.
+*   **⚡ Instant & Low Cost**: Built on Celo to ensure betting is affordable (cents, not dollars) and instant.
+*   **💸 Automated Settlements**: Winners are calculated automatically by the smart contract—no human error in payouts.
+*   **🤝 Social Viral Loops**: Integrated sharing features to allow users to challenge friends on WhatsApp and Twitter.
+
+## 🔮 Future Roadmap (Post-Hackathon)
+
+1.  **Chainlink Data Feeds**: We will replace the current Admin Oracle with **Chainlink Sports Data Feeds** to fully decentralize match settlements.
+2.  **Opera MiniPay Integration**: We plan to optimize the manifest to run CeloPredict directly inside the **MiniPay** wallet for instant distribution to millions of users in Africa.
+3.  **Stablecoin Support**: Transitioning the pot from CELO to **cUSD** to protect users from volatility.
+
+---
 
 ## 📱 Hackathon Demo Mode
 
-**⚠️ IMPORTANT FOR JUDGES & TESTERS**
+**⚠️ IMPORTANT FOR JUDGES**
 
-To ensure a smooth testing experience without requiring MetaMask installation or configuration, this app is currently running in **Hackathon Mode**.
+To ensure a frictionless testing experience, this app is currently running in **Hackathon Mode**.
 
-1.  **Auto-Login**: The app automatically connects using a pre-funded Testnet Admin Wallet.
-2.  **Auto-Signing**: Transactions (Betting, Creating Matches) are signed automatically in the background.
-3.  **Full Admin Access**: You have immediate access to the **Admin Panel** to Create Matches and Settle Results for demo purposes.
+1.  **No Wallet Needed**: The app automatically connects using a pre-funded Testnet Admin Wallet.
+2.  **Auto-Signing**: Transactions (Betting, Creating Matches) are signed automatically in the background—no MetaMask popups required.
+3.  **Full Admin Access**: You have immediate access to the **Admin Console** to Create Matches and Settle Results to test the full lifecycle in minutes.
 
 *To disable this for production, set `IS_HACKATHON_MODE = false` in `constants.ts`.*
 
+---
+
+## 🎮 How to Demo (60-Second Walkthrough)
+
+1.  **Create a Match (Admin Tab)**:
+    *   Go to the **Admin** tab.
+    *   Enter teams (e.g., "Real Madrid" vs "Barca").
+    *   Click **+1 Min** to set the kickoff to 60 seconds from now.
+    *   Click **Publish**.
+2.  **Place a Bet (Home Tab)**:
+    *   Go to **Home** and tap your new match.
+    *   Enter a score (e.g., 2 - 1) and click **Place Bet**.
+    *   *Watch the confetti! 🎉*
+3.  **Simulate Match End**:
+    *   Wait 1 minute for the match timer to hit 00:00.
+4.  **Settle Match (Admin Tab)**:
+    *   Go back to **Admin** -> **Pending Results**.
+    *   Wait for the "Ready to Settle" indicator.
+    *   Enter the final score and click **Settle**.
+5.  **Claim Winnings (Wallet Tab)**:
+    *   If you guessed correctly, go to the **Wallet** tab.
+    *   Click **Claim to Wallet**.
+
+---
+
 ## 🛠 Tech Stack
 
-*   **Frontend**: React 18, Tailwind CSS, Lucide Icons.
+*   **Frontend**: React 18, Tailwind CSS, Lucide Icons (Glassmorphism UI).
 *   **Blockchain**: Celo Sepolia Testnet.
 *   **Integration**: Ethers.js v6.
 *   **Smart Contract**: Solidity (ERC20/Native logic).
@@ -41,47 +79,6 @@ To ensure a smooth testing experience without requiring MetaMask installation or
 *   **RPC URL**: `https://forno.celo-sepolia.celo-testnet.org`
 *   **Contract Address**: `0x630fcEBE028f80C4420E5684ACab17b001ce4975`
 
-## 🏃‍♂️ How to Run Locally
-
-1.  **Clone the repository**
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-3.  **Run the development server**:
-    ```bash
-    npm start
-    ```
-4.  Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-## 🎮 How to Demo (Walkthrough)
-
-1.  **Create a Match (Admin)**:
-    *   Go to the **Admin** tab.
-    *   Enter "Real Madrid" vs "Barcelona".
-    *   Click **+2 Min** to set a quick kickoff time.
-    *   Click **Publish**.
-2.  **Place a Bet**:
-    *   Go to **Home**.
-    *   Tap the new match.
-    *   Enter a score (e.g., 2 - 1) and click **Place Bet**.
-3.  **Simulate Match End**:
-    *   Wait 2 minutes for the match time to pass.
-4.  **Settle Match (Admin)**:
-    *   Go back to **Admin**.
-    *   Enter the final score in the "Pending Results" section.
-    *   Click **Settle**.
-5.  **Claim Winnings**:
-    *   If you guessed correctly, go to the **Wallet** tab and click **Claim**.
-
-## 📂 Project Structure
-
-*   `/contracts`: Solidity smart contract source code.
-*   `/pages`: Individual screens (Home, Wallet, Admin, etc.).
-*   `/components`: Reusable UI components (BottomNav, Header).
-*   `/contexts`: Global blockchain state management.
-*   `/services`: Ethers.js interaction logic.
-
 ---
 
-Built with 💚 for the Celo Hackathon.
+*Built with 💚 for the Celo Hackathon.*

@@ -7,24 +7,19 @@ const jsonProvider = new ethers.JsonRpcProvider(RPC_URL);
 
 // --- WALLET HELPERS ---
 
-export const getEthereum = () => {
-  if (IS_HACKATHON_MODE) {
-    return { isHackathon: true };
-  }
-  // @ts-ignore
-  return window.ethereum || window.celo;
-};
-
 export const getSigner = async () => {
   if (IS_HACKATHON_MODE) {
      if (!HACKATHON_PRIVATE_KEY) throw new Error("Hackathon mode enabled but no private key found.");
      // Create wallet and connect it to the provider immediately
+     // This bypasses Metamask entirely
      const wallet = new ethers.Wallet(HACKATHON_PRIVATE_KEY, jsonProvider);
      return wallet;
   }
 
-  const ethereum = getEthereum();
-  if (!ethereum) throw new Error("No wallet found. Please install MetaMask or Valora.");
+  // Production Mode (Not used for this Hackathon Demo)
+  // @ts-ignore
+  const ethereum = window.ethereum || window.celo;
+  if (!ethereum) throw new Error("No wallet found.");
   
   const provider = new ethers.BrowserProvider(ethereum);
   const signer = await provider.getSigner();
@@ -49,6 +44,16 @@ export const getUserBalance = async (address: string) => {
         return "0.0";
     }
 };
+
+export const getContractBalance = async () => {
+    try {
+        const balance = await jsonProvider.getBalance(CONTRACT_ADDRESS);
+        return ethers.formatEther(balance);
+    } catch (e) {
+        console.error("Error fetching contract balance", e);
+        return "0.0";
+    }
+}
 
 export const formatTimestamp = (timestamp: string | number) => {
   const date = new Date(Number(timestamp) * 1000);

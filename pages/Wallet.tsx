@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Wallet as WalletIcon, Award, Users, ExternalLink } from 'lucide-react';
+import { Wallet as WalletIcon, Award, Users, ExternalLink, Zap } from 'lucide-react';
 import { useBlockchain } from '../contexts/BlockchainContext';
 import { formatCurrency } from '../services/blockchain';
 
@@ -19,25 +19,30 @@ const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
       {!isConnected ? (
         <div className="bg-[#1A1A1A] rounded-3xl p-8 text-center border border-white/5">
            <WalletIcon size={48} className="mx-auto text-gray-600 mb-4" />
-           <p className="text-gray-400 mb-6">Connect your wallet to view your balance and claim winnings.</p>
+           <p className="text-gray-400 mb-6">Connecting to Celo Network...</p>
            <button 
-             onClick={connectWallet}
+             onClick={() => connectWallet()}
              disabled={isConnecting}
              className="w-full py-4 bg-celo-green text-black font-bold rounded-xl hover:bg-emerald-400 transition-colors disabled:opacity-50"
            >
-             {isConnecting ? "Connecting..." : "Connect Wallet"}
+             {isConnecting ? "Connecting..." : "Retry Connection"}
            </button>
         </div>
       ) : (
         <div className="space-y-4">
            {/* Balance Card */}
-           <div className="bg-gradient-to-br from-celo-green to-emerald-800 rounded-3xl p-6 text-black relative overflow-hidden shadow-lg shadow-celo-green/20">
+           <div className={`rounded-3xl p-6 text-black relative overflow-hidden shadow-lg bg-gradient-to-br from-celo-green to-emerald-800 shadow-celo-green/20`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
               <div className="relative z-10">
-                <div className="text-sm font-bold opacity-70 mb-1">Total Balance</div>
+                <div className="flex justify-between items-start">
+                    <div className="text-sm font-bold opacity-70 mb-1">Total Balance</div>
+                    <div className="text-[10px] font-bold bg-black/20 px-2 py-1 rounded text-white flex items-center gap-1">
+                        <Zap size={10} className="text-celo-gold" /> DEV WALLET
+                    </div>
+                </div>
                 <div className="text-4xl font-bold tracking-tight mb-4">{parseFloat(userBalance).toFixed(2)} <span className="text-lg">CELO</span></div>
                 <div className="flex items-center gap-2 text-xs font-medium bg-black/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                  <div className="w-2 h-2 bg-green-900 rounded-full animate-pulse"></div>
+                  <div className={`w-2 h-2 rounded-full animate-pulse bg-green-900`}></div>
                   Celo Sepolia Testnet
                 </div>
               </div>

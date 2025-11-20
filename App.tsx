@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { CheckCircle2, X, Wallet as WalletIcon, PartyPopper } from 'lucide-react';
+import { CheckCircle2, X, Wallet as WalletIcon, PartyPopper, HelpCircle, ScrollText, Info, AlertTriangle, LogOut, Zap } from 'lucide-react';
 import { ENTRY_FEE_DISPLAY } from './constants';
-import { getContract, getReadOnlyContract, formatCurrency } from './services/blockchain';
+import { getContract, getReadOnlyContract, formatCurrency, getContractBalance } from './services/blockchain';
 import { Match, Prediction, PageView, TxStatus } from './types';
 import { BlockchainProvider, useBlockchain } from './contexts/BlockchainContext';
 
@@ -26,8 +27,8 @@ const CeloLogo = () => (
   </svg>
 );
 
-const Header = () => {
-  const { isConnected, connectWallet, isConnecting } = useBlockchain();
+const Header = ({ onOpenHelp }: { onOpenHelp: () => void }) => {
+  const { isConnected } = useBlockchain();
   return (
     <header className="sticky top-0 z-40 w-full bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-white/5">
       <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
@@ -44,20 +45,15 @@ const Header = () => {
          </div>
          
          <div className="flex items-center gap-2">
-            {!isConnected ? (
-                <button 
-                  onClick={connectWallet}
-                  disabled={isConnecting}
-                  className="flex items-center gap-2 bg-celo-green text-black px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-400 transition-colors"
-                >
-                   <WalletIcon size={12} />
-                   {isConnecting ? "..." : "Connect"}
-                </button>
-            ) : (
-              <div className="flex items-center gap-1.5 bg-green-900/20 border border-green-900/30 px-2 py-1 rounded-full">
-                <div className="w-1.5 h-1.5 rounded-full bg-celo-green shadow-[0_0_8px_rgba(53,208,127,0.6)] animate-pulse" />
-                <span className="text-[10px] font-bold text-celo-green">Live</span>
-              </div>
+            <button onClick={onOpenHelp} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
+               <HelpCircle size={18} />
+            </button>
+            
+            {isConnected && (
+                <div className="flex items-center gap-1.5 bg-yellow-900/20 border border-yellow-900/30 px-2 py-1 rounded-full">
+                    <div className="w-1.5 h-1.5 rounded-full bg-celo-gold animate-pulse" />
+                    <span className="text-[10px] font-bold text-celo-gold">Dev Wallet</span>
+                </div>
             )}
          </div>
       </div>
@@ -65,25 +61,50 @@ const Header = () => {
   );
 };
 
+// --- Toast Notification Component ---
+const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-md animate-in slide-in-from-top-4 fade-in duration-300 max-w-[90%] w-auto whitespace-nowrap
+      ${type === 'success' ? 'bg-green-900/80 border-celo-green/30 text-white' : 'bg-red-900/80 border-red-500/30 text-white'}`}>
+      {type === 'success' ? <CheckCircle2 size={18} className="text-celo-green" /> : <AlertTriangle size={18} className="text-red-400" />}
+      <span className="text-sm font-medium">{message}</span>
+    </div>
+  );
+};
+
 const AppContent: React.FC = () => {
-  const { currentAccount, userBalance, refreshData, connectWallet } = useBlockchain();
+  const { currentAccount, userBalance, refreshData } = useBlockchain();
 
   // State
   const [matches, setMatches] = useState<Match[]>([]);
   const [myPredictions, setMyPredictions] = useState<{matchId: string, prediction: Prediction, matchData: Match}[]>([]);
   const [userWinnings, setUserWinnings] = useState<string>("0");
+  const [platformFees, setPlatformFees] = useState<string>("0");
   const [activePage, setActivePage] = useState<PageView>(PageView.HOME);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [txStatus, setTxStatus] = useState<TxStatus>(TxStatus.IDLE);
   const [statusMsg, setStatusMsg] = useState<string>("");
+  const [showHelp, setShowHelp] = useState<boolean>(false);
+  
+  // Toast State
+  const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
 
   // Betting Form
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [predictHome, setPredictHome] = useState<string>("");
   const [predictAway, setPredictAway] = useState<string>("");
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
+  const showToast = (msg: string, type: 'success' | 'error') => {
+    setToast({ msg, type });
+  };
+
+  const fetchData = useCallback(async (showLoading = false) => {
+    if(showLoading) setIsLoading(true);
     try {
       const contract = getReadOnlyContract();
       
@@ -104,7 +125,11 @@ const AppContent: React.FC = () => {
       formattedMatches.sort((a, b) => Number(a.kickoffTime) - Number(b.kickoffTime));
       setMatches(formattedMatches);
 
-      // 2. User Specific Data
+      // 2. Contract Balance (TVL)
+      const balance = await getContractBalance();
+      setPlatformFees(balance);
+
+      // 3. User Specific Data
       if (currentAccount) {
         const userPreds = await contract.getUserPredictions(currentAccount);
         const matchIds = userPreds[0];
@@ -159,13 +184,23 @@ const AppContent: React.FC = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
-      setIsLoading(false);
+      if(showLoading) setIsLoading(false);
     }
   }, [currentAccount]);
 
+  // Initial Fetch
   useEffect(() => {
-    fetchData();
+    fetchData(true);
   }, [fetchData]);
+
+  // Auto-Refresh (Live Data)
+  useEffect(() => {
+    const interval = setInterval(() => {
+       fetchData(false);
+       refreshData();
+    }, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [fetchData, refreshData]);
 
   const triggerConfetti = () => {
     const duration = 3000;
@@ -191,10 +226,7 @@ const AppContent: React.FC = () => {
 
   const handlePredict = async () => {
     if (!selectedMatch) return;
-    // Auto-connect if missing
-    if (!currentAccount) {
-        await connectWallet();
-    }
+    
     if (predictHome === "" || predictAway === "") return;
 
     setTxStatus(TxStatus.PENDING);
@@ -225,6 +257,7 @@ const AppContent: React.FC = () => {
       
       setTxStatus(TxStatus.SUCCESS);
       setStatusMsg("Prediction Placed!");
+      showToast("Prediction Successful!", "success");
       triggerConfetti();
       
       setTimeout(() => {
@@ -232,7 +265,7 @@ const AppContent: React.FC = () => {
           setSelectedMatch(null);
           setPredictHome("");
           setPredictAway("");
-          fetchData();
+          fetchData(true);
           refreshData();
           setActivePage(PageView.MY_BETS);
       }, 2500);
@@ -243,8 +276,10 @@ const AppContent: React.FC = () => {
       let msg = error.reason || error.message || "Transaction Failed";
       if (msg.includes("execution reverted")) msg = "Execution Reverted: Match likely closed or already predicted.";
       if (msg.includes("Already predicted")) msg = "You have already predicted this match.";
+      if (msg.includes("user rejected")) msg = "User rejected the transaction.";
       
       setStatusMsg(msg);
+      showToast("Prediction Failed", "error");
     }
   };
 
@@ -259,13 +294,15 @@ const AppContent: React.FC = () => {
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
       setStatusMsg("Winnings Claimed!");
+      showToast("Winnings Claimed!", "success");
       triggerConfetti();
-      fetchData();
+      fetchData(true);
       refreshData();
       setTimeout(() => setTxStatus(TxStatus.IDLE), 2500);
     } catch (error: any) {
       setTxStatus(TxStatus.ERROR);
       setStatusMsg(error.reason || "Claim Failed");
+      showToast("Claim Failed", "error");
     }
   };
 
@@ -279,11 +316,13 @@ const AppContent: React.FC = () => {
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
       setStatusMsg("Match Created!");
-      fetchData();
+      showToast("Match Created Successfully", "success");
+      fetchData(true);
       setTimeout(() => setTxStatus(TxStatus.IDLE), 2000);
     } catch (e: any) {
       setTxStatus(TxStatus.ERROR);
       setStatusMsg(e.reason || "Failed to create match. Are you the owner?");
+      showToast("Create Match Failed", "error");
     }
   };
 
@@ -297,13 +336,42 @@ const AppContent: React.FC = () => {
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
       setStatusMsg("Match Settled!");
-      fetchData();
+      showToast("Match Settled Successfully", "success");
+      fetchData(true);
       setTimeout(() => setTxStatus(TxStatus.IDLE), 2000);
     } catch (e: any) {
       setTxStatus(TxStatus.ERROR);
       let msg = e.reason || "Settlement Failed";
       if (e.message.includes("execution reverted")) msg = "Reverted: Match might not be started yet.";
       setStatusMsg(msg);
+      showToast("Settlement Failed", "error");
+    }
+  };
+
+  const handleWithdrawFees = async () => {
+    setTxStatus(TxStatus.PENDING);
+    setStatusMsg("Withdrawing Funds...");
+    try {
+      const contract = await getContract();
+      // Manual high gas limit because transferring 0 or max balance can sometimes trigger estimation issues
+      const tx = await contract.withdrawPlatformFees({ gasLimit: 500000 });
+      await tx.wait();
+      setTxStatus(TxStatus.SUCCESS);
+      setStatusMsg("Funds Withdrawn to Admin Wallet!");
+      showToast("Funds Withdrawn", "success");
+      fetchData(true);
+      setTimeout(() => setTxStatus(TxStatus.IDLE), 2000);
+    } catch (e: any) {
+      console.error(e);
+      setTxStatus(TxStatus.ERROR);
+      // Extract better error message
+      let msg = "Withdrawal Failed";
+      if (e.reason) msg = e.reason;
+      else if (e.message && e.message.includes("Ownable")) msg = "Failed: Caller is not the owner";
+      else if (e.info && e.info.error && e.info.error.message) msg = e.info.error.message;
+      
+      setStatusMsg(msg);
+      showToast("Withdrawal Failed", "error");
     }
   };
 
@@ -345,10 +413,73 @@ const AppContent: React.FC = () => {
     );
   };
 
+  const HelpModal = () => {
+    if (!showHelp) return null;
+    return (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowHelp(false)}>
+         <div className="bg-[#1A1A1A] rounded-3xl p-6 border border-white/10 max-w-sm w-full shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-10 h-10 rounded-full bg-celo-green/20 flex items-center justify-center text-celo-green">
+                  <ScrollText size={20} />
+               </div>
+               <h3 className="text-xl font-bold text-white">App Guide</h3>
+            </div>
+            
+            <div className="mb-6 border-b border-gray-800 pb-6">
+              <h4 className="text-celo-green text-xs font-bold uppercase tracking-wider mb-3">For Judges & Testing</h4>
+              <div className="space-y-3">
+                 <div className="flex gap-3 items-start">
+                    <span className="w-5 h-5 rounded bg-celo-green/20 text-celo-green flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                    <p className="text-gray-300 text-xs leading-relaxed">Go to the <strong>Admin</strong> tab. You are auto-logged in as Admin in Demo Mode.</p>
+                 </div>
+                 <div className="flex gap-3 items-start">
+                    <span className="w-5 h-5 rounded bg-celo-green/20 text-celo-green flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                    <p className="text-gray-300 text-xs leading-relaxed">Create a Match. Click <strong>"+2 Min"</strong> (Recommended) to ensure you have enough time to place a bet.</p>
+                 </div>
+                 <div className="flex gap-3 items-start">
+                    <span className="w-5 h-5 rounded bg-celo-green/20 text-celo-green flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                    <p className="text-gray-300 text-xs leading-relaxed">Quickly go to <strong>Home</strong> and place a bet before time runs out.</p>
+                 </div>
+                 <div className="flex gap-3 items-start">
+                    <span className="w-5 h-5 rounded bg-celo-green/20 text-celo-green flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+                    <p className="text-gray-300 text-xs leading-relaxed">Wait for match start (2 mins). Return to <strong>Admin</strong>, enter scores, and click <strong>Settle</strong>.</p>
+                 </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-3">General Rules</h4>
+              <div className="space-y-3">
+                 <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                    <p className="text-gray-500 text-xs">Predict the <strong>exact final score</strong>.</p>
+                 </div>
+                 <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                    <p className="text-gray-500 text-xs">Entry Fee is fixed at <strong>0.5 CELO</strong>.</p>
+                 </div>
+                 <div className="flex gap-3">
+                    <span className="w-5 h-5 rounded bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                    <p className="text-gray-500 text-xs">Winners split the pot evenly. If no one wins, pot carries over (in v2).</p>
+                 </div>
+              </div>
+            </div>
+            
+            <button onClick={() => setShowHelp(false)} className="w-full mt-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200">Close Guide</button>
+         </div>
+      </div>
+    )
+  }
+
   const BettingSheet = () => {
     if (!selectedMatch) return null;
     
     const existingPrediction = myPredictions.find(p => p.matchId === selectedMatch.id);
+    
+    // Calculate Projected Prize Pool (Current + Entry Fee)
+    const currentPool = parseFloat(ethers.formatEther(selectedMatch.prizePool));
+    const entryFee = 0.5; // Hardcoded based on contract
+    const projectedPool = (currentPool + entryFee).toFixed(2);
     
     return (
       <div className="fixed inset-0 z-[60] flex flex-col justify-end">
@@ -400,8 +531,8 @@ const AppContent: React.FC = () => {
                     <span className="text-white font-bold">{ENTRY_FEE_DISPLAY}</span>
                  </div>
                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400 font-medium">Potential Win</span>
-                    <span className="text-celo-gold font-bold shadow-glow">~{formatCurrency(selectedMatch.prizePool)} CELO</span>
+                    <span className="text-gray-400 font-medium">Est. Prize Pool</span>
+                    <span className="text-celo-gold font-bold shadow-glow">~{projectedPool} CELO</span>
                  </div>
               </div>
 
@@ -424,8 +555,10 @@ const AppContent: React.FC = () => {
       {/* Background Glow */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-celo-green/5 rounded-full blur-[120px] pointer-events-none" />
       
-      <Header />
+      <Header onOpenHelp={() => setShowHelp(true)} />
       <StatusOverlay />
+      <HelpModal />
+      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       <BettingSheet />
       
       <main className="max-w-md mx-auto min-h-screen relative z-10">
@@ -433,7 +566,7 @@ const AppContent: React.FC = () => {
         {activePage === PageView.WALLET && <Wallet userWinnings={userWinnings} onClaim={handleClaim} />}
         {activePage === PageView.MY_BETS && <MyBets myPredictions={myPredictions} onNavigateHome={() => setActivePage(PageView.HOME)} />}
         {activePage === PageView.LEADERBOARD && <Leaderboard myPredictions={myPredictions} />}
-        {activePage === PageView.ADMIN && <Admin matches={matches} onCreateMatch={handleCreateMatch} onSettleMatch={handleSettleMatch} />}
+        {activePage === PageView.ADMIN && <Admin matches={matches} onCreateMatch={handleCreateMatch} onSettleMatch={handleSettleMatch} onWithdrawFees={handleWithdrawFees} platformFees={platformFees} />}
       </main>
       
       <BottomNav activePage={activePage} setActivePage={setActivePage} hasUnclaimed={Number(userWinnings) > 0} />

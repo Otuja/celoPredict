@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Shield, Trophy, Clock, AlertTriangle } from 'lucide-react';
+import { PlusCircle, Shield, Trophy, Clock, AlertTriangle, Wallet, Download } from 'lucide-react';
 import { Match } from '../types';
 import { useBlockchain } from '../contexts/BlockchainContext';
 import { getReadOnlyContract } from '../services/blockchain';
@@ -8,8 +8,10 @@ import { ADMIN_ADDRESS } from '../constants';
 
 interface AdminProps {
   matches: Match[];
+  platformFees: string;
   onCreateMatch: (home: string, away: string, kickoff: string) => void;
   onSettleMatch: (id: string, home: string, away: string) => void;
+  onWithdrawFees: () => void;
 }
 
 // Sub-component to handle individual settlement form state
@@ -88,7 +90,7 @@ const SettlementRow = ({ match, onSettle }: { match: Match, onSettle: (id: strin
     );
 }
 
-const Admin: React.FC<AdminProps> = ({ matches, onCreateMatch, onSettleMatch }) => {
+const Admin: React.FC<AdminProps> = ({ matches, platformFees, onCreateMatch, onSettleMatch, onWithdrawFees }) => {
   const { currentAccount } = useBlockchain();
   const [isOwner, setIsOwner] = useState<boolean | null>(null);
   
@@ -151,6 +153,28 @@ const Admin: React.FC<AdminProps> = ({ matches, onCreateMatch, onSettleMatch }) 
               </div>
           </div>
       )}
+
+      {/* Platform Earnings (Business Model) */}
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-5 rounded-3xl border border-gray-700 mb-6">
+         <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white">
+                  <Wallet size={20} />
+               </div>
+               <div>
+                  <div className="text-xs text-gray-400 font-medium">Contract Balance (TVL)</div>
+                  <div className="text-lg font-bold text-white">{parseFloat(platformFees).toFixed(4)} CELO</div>
+               </div>
+            </div>
+            <button 
+              onClick={onWithdrawFees}
+              disabled={isOwner === false}
+              className="px-4 py-2 bg-white text-black text-xs font-bold rounded-lg flex items-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download size={14} /> Withdraw
+            </button>
+         </div>
+      </div>
       
       <div className="space-y-6">
         {/* Create Match */}
