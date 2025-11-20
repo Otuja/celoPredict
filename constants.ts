@@ -49,6 +49,7 @@ export const CONTRACT_ABI = [
   "function withdrawPlatformFees() external",
   
   // Read functions
+  "function matchCounter() external view returns (uint256)",
   "function matches(uint256) external view returns (uint256 id, string homeTeam, string awayTeam, uint256 kickoffTime, uint256 prizePool, bool resultsSubmitted, uint8 finalHomeScore, uint8 finalAwayScore, bool prizesDistributed)",
   "function getActiveMatches() external view returns (tuple(uint256 id, string homeTeam, string awayTeam, uint256 kickoffTime, uint256 prizePool, bool resultsSubmitted, uint8 finalHomeScore, uint8 finalAwayScore, bool prizesDistributed)[])",
   "function getUserPredictions(address _user) external view returns (uint256[] memory matchIds, tuple(address predictor, uint8 homeScore, uint8 awayScore, uint256 amount, uint256 timestamp)[] memory predictions)",
