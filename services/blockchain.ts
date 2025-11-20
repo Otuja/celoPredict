@@ -1,33 +1,49 @@
 
 import { ethers } from 'ethers';
-import { CONTRACT_ABI, CONTRACT_ADDRESS, RPC_URL, HACKATHON_PRIVATE_KEY, IS_HACKATHON_MODE } from '../constants';
+import { CONTRACT_ABI, CONTRACT_ADDRESS, RPC_URL, HACKATHON_PRIVATE_KEY } from '../constants';
 
-// Global Provider
+// Global Provider for Read-Only access
 const jsonProvider = new ethers.JsonRpcProvider(RPC_URL);
 
-// --- WALLET HELPERS ---
-
-export const getSigner = async () => {
-  if (IS_HACKATHON_MODE) {
-     if (!HACKATHON_PRIVATE_KEY) throw new Error("Hackathon mode enabled but no private key found.");
-     // Create wallet and connect it to the provider immediately
-     // This bypasses Metamask entirely
-     const wallet = new ethers.Wallet(HACKATHON_PRIVATE_KEY, jsonProvider);
-     return wallet;
-  }
-
-  // Production Mode (Not used for this Hackathon Demo)
-  // @ts-ignore
-  const ethereum = window.ethereum || window.celo;
-  if (!ethereum) throw new Error("No wallet found.");
-  
-  const provider = new ethers.BrowserProvider(ethereum);
-  const signer = await provider.getSigner();
-  return signer;
+// --- 1. ADMIN SIGNER (ALWAYS PRIVATE KEY) ---
+// This ensures Admin actions (Create, Settle) never fail,
+// even if the user has connected a non-admin personal wallet.
+export const getAdminSigner = () => {
+    if (!HACKATHON_PRIVATE_KEY) throw new Error("No Admin Private Key found.");
+    return new ethers.Wallet(HACKATHON_PRIVATE_KEY, jsonProvider);
 };
 
-export const getContract = async () => {
-  const signer = await getSigner();
+// --- 2. USER SIGNER (HYBRID) ---
+// Used for Betting and Claiming.
+// Priority: Browser Wallet (MetaMask/MiniPay/Valora) -> Fallback: Dev Wallet (Private Key)
+export const getUserSigner = async () => {
+    // @ts-ignore
+    const injectedProvider = window.ethereum || window.celo;
+
+    // A. Try Browser Wallet (Real User)
+    if (injectedProvider) {
+        try {
+            // Request account access
+            const provider = new ethers.BrowserProvider(injectedProvider);
+            // This triggers the popup in MetaMask/MiniPay
+            const signer = await provider.getSigner(); 
+            return signer;
+        } catch (e) {
+            console.warn("Browser wallet connection failed or rejected. Falling back to Dev Wallet.");
+        }
+    }
+
+    // B. Fallback to Dev Wallet (Guest/Judge Mode)
+    // If no wallet is installed, or user rejected connection, use the dev key
+    return getAdminSigner();
+};
+
+// --- CONTRACT HELPERS ---
+
+// getContract(true) -> Forces Admin Key (Create Match, Settle)
+// getContract(false) -> Tries User Wallet first (Bet, Claim)
+export const getContract = async (asAdmin: boolean = false) => {
+  const signer = asAdmin ? getAdminSigner() : await getUserSigner();
   return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 };
 

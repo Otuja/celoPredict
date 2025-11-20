@@ -28,7 +28,7 @@ const CeloLogo = () => (
 );
 
 const Header = ({ onOpenHelp }: { onOpenHelp: () => void }) => {
-  const { isConnected } = useBlockchain();
+  const { isConnected, isDevWallet } = useBlockchain();
   return (
     <header className="sticky top-0 z-40 w-full bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-white/5">
       <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
@@ -49,10 +49,16 @@ const Header = ({ onOpenHelp }: { onOpenHelp: () => void }) => {
                <HelpCircle size={18} />
             </button>
             
-            {isConnected && (
+            {isConnected && isDevWallet && (
                 <div className="flex items-center gap-1.5 bg-yellow-900/20 border border-yellow-900/30 px-2 py-1 rounded-full">
                     <div className="w-1.5 h-1.5 rounded-full bg-celo-gold animate-pulse" />
                     <span className="text-[10px] font-bold text-celo-gold">Dev Wallet</span>
+                </div>
+            )}
+            {isConnected && !isDevWallet && (
+                <div className="flex items-center gap-1.5 bg-celo-green/20 border border-celo-green/30 px-2 py-1 rounded-full">
+                    <div className="w-1.5 h-1.5 rounded-full bg-celo-green animate-pulse" />
+                    <span className="text-[10px] font-bold text-celo-green">Connected</span>
                 </div>
             )}
          </div>
@@ -222,18 +228,18 @@ const AppContent: React.FC = () => {
     }, 250);
   }
 
-  // --- Contract Actions ---
+  // --- USER ACTIONS (Uses Browser Wallet if available, else Dev Wallet) ---
 
   const handlePredict = async () => {
     if (!selectedMatch) return;
-    
     if (predictHome === "" || predictAway === "") return;
 
     setTxStatus(TxStatus.PENDING);
     setStatusMsg("Submitting Prediction...");
     
     try {
-      const contract = await getContract();
+      // USER ACTION: getContract(false) -> Checks User Wallet First
+      const contract = await getContract(false);
       const entryFee = ethers.parseEther("0.5");
       
       // Check if already predicted locally first
@@ -289,7 +295,8 @@ const AppContent: React.FC = () => {
     setStatusMsg("Claiming Winnings...");
     
     try {
-      const contract = await getContract();
+      // USER ACTION: getContract(false) -> Checks User Wallet First
+      const contract = await getContract(false);
       const tx = await contract.claimWinnings({ gasLimit: 300000 });
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
@@ -306,11 +313,14 @@ const AppContent: React.FC = () => {
     }
   };
 
+  // --- ADMIN ACTIONS (ALWAYS USE PRIVATE KEY) ---
+
   const handleCreateMatch = async (home: string, away: string, kickoff: string) => {
     setTxStatus(TxStatus.PENDING);
     setStatusMsg("Creating Match...");
     try {
-      const contract = await getContract();
+      // ADMIN ACTION: getContract(true) -> Forces Admin Signer
+      const contract = await getContract(true);
       const kickoffUnix = Math.floor(new Date(kickoff).getTime() / 1000);
       const tx = await contract.createMatch(home, away, kickoffUnix, { gasLimit: 800000 });
       await tx.wait();
@@ -331,7 +341,8 @@ const AppContent: React.FC = () => {
     setTxStatus(TxStatus.PENDING);
     setStatusMsg("Submitting Result...");
     try {
-      const contract = await getContract();
+      // ADMIN ACTION: getContract(true) -> Forces Admin Signer
+      const contract = await getContract(true);
       const tx = await contract.submitResult(id, parseInt(home), parseInt(away), { gasLimit: 800000 });
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
@@ -352,8 +363,8 @@ const AppContent: React.FC = () => {
     setTxStatus(TxStatus.PENDING);
     setStatusMsg("Withdrawing Funds...");
     try {
-      const contract = await getContract();
-      // Manual high gas limit because transferring 0 or max balance can sometimes trigger estimation issues
+      // ADMIN ACTION: getContract(true) -> Forces Admin Signer
+      const contract = await getContract(true);
       const tx = await contract.withdrawPlatformFees({ gasLimit: 500000 });
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
@@ -364,11 +375,9 @@ const AppContent: React.FC = () => {
     } catch (e: any) {
       console.error(e);
       setTxStatus(TxStatus.ERROR);
-      // Extract better error message
       let msg = "Withdrawal Failed";
       if (e.reason) msg = e.reason;
       else if (e.message && e.message.includes("Ownable")) msg = "Failed: Caller is not the owner";
-      else if (e.info && e.info.error && e.info.error.message) msg = e.info.error.message;
       
       setStatusMsg(msg);
       showToast("Withdrawal Failed", "error");
@@ -430,7 +439,7 @@ const AppContent: React.FC = () => {
               <div className="space-y-3">
                  <div className="flex gap-3 items-start">
                     <span className="w-5 h-5 rounded bg-celo-green/20 text-celo-green flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
-                    <p className="text-gray-300 text-xs leading-relaxed">Go to the <strong>Admin</strong> tab. You are auto-logged in as Admin in Demo Mode.</p>
+                    <p className="text-gray-300 text-xs leading-relaxed">Go to the <strong>Admin</strong> tab. You are auto-logged in as Admin.</p>
                  </div>
                  <div className="flex gap-3 items-start">
                     <span className="w-5 h-5 rounded bg-celo-green/20 text-celo-green flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
@@ -460,7 +469,7 @@ const AppContent: React.FC = () => {
                  </div>
                  <div className="flex gap-3">
                     <span className="w-5 h-5 rounded bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
-                    <p className="text-gray-500 text-xs">Winners split the pot evenly. If no one wins, pot carries over (in v2).</p>
+                    <p className="text-gray-500 text-xs">Winners split the pot evenly. If no one wins, pot carries over.</p>
                  </div>
               </div>
             </div>
@@ -475,10 +484,8 @@ const AppContent: React.FC = () => {
     if (!selectedMatch) return null;
     
     const existingPrediction = myPredictions.find(p => p.matchId === selectedMatch.id);
-    
-    // Calculate Projected Prize Pool (Current + Entry Fee)
     const currentPool = parseFloat(ethers.formatEther(selectedMatch.prizePool));
-    const entryFee = 0.5; // Hardcoded based on contract
+    const entryFee = 0.5; 
     const projectedPool = (currentPool + entryFee).toFixed(2);
     
     return (
