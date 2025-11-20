@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { CheckCircle2, X, Wallet as WalletIcon } from 'lucide-react';
+import { CheckCircle2, X, Wallet as WalletIcon, PartyPopper } from 'lucide-react';
 import { ENTRY_FEE_DISPLAY } from './constants';
 import { getContract, getReadOnlyContract, formatCurrency } from './services/blockchain';
 import { Match, Prediction, PageView, TxStatus } from './types';
@@ -14,6 +13,9 @@ import MyBets from './pages/MyBets';
 import Leaderboard from './pages/Leaderboard';
 import Admin from './pages/Admin';
 import BottomNav from './components/BottomNav';
+
+// Declare confetti global
+declare var confetti: any;
 
 // --- Header Component ---
 const CeloLogo = () => (
@@ -165,6 +167,26 @@ const AppContent: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
+  const triggerConfetti = () => {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+    const interval: any = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+    }, 250);
+  }
+
   // --- Contract Actions ---
 
   const handlePredict = async () => {
@@ -195,7 +217,7 @@ const AppContent: React.FC = () => {
         parseInt(predictAway),
         { 
             value: entryFee,
-            gasLimit: 600000 // Explicit gas limit to prevent "gas required exceeds allowance" or estimation errors
+            gasLimit: 600000 // Explicit gas limit
         }
       );
       setStatusMsg("Confirming on Celo...");
@@ -203,6 +225,7 @@ const AppContent: React.FC = () => {
       
       setTxStatus(TxStatus.SUCCESS);
       setStatusMsg("Prediction Placed!");
+      triggerConfetti();
       
       setTimeout(() => {
           setTxStatus(TxStatus.IDLE);
@@ -212,7 +235,7 @@ const AppContent: React.FC = () => {
           fetchData();
           refreshData();
           setActivePage(PageView.MY_BETS);
-      }, 2000);
+      }, 2500);
     } catch (error: any) {
       console.error(error);
       setTxStatus(TxStatus.ERROR);
@@ -236,9 +259,10 @@ const AppContent: React.FC = () => {
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
       setStatusMsg("Winnings Claimed!");
+      triggerConfetti();
       fetchData();
       refreshData();
-      setTimeout(() => setTxStatus(TxStatus.IDLE), 2000);
+      setTimeout(() => setTxStatus(TxStatus.IDLE), 2500);
     } catch (error: any) {
       setTxStatus(TxStatus.ERROR);
       setStatusMsg(error.reason || "Claim Failed");
@@ -251,7 +275,6 @@ const AppContent: React.FC = () => {
     try {
       const contract = await getContract();
       const kickoffUnix = Math.floor(new Date(kickoff).getTime() / 1000);
-      // High gas limit for creation
       const tx = await contract.createMatch(home, away, kickoffUnix, { gasLimit: 800000 });
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
@@ -270,7 +293,6 @@ const AppContent: React.FC = () => {
     setStatusMsg("Submitting Result...");
     try {
       const contract = await getContract();
-      // High gas limit for settlement
       const tx = await contract.submitResult(id, parseInt(home), parseInt(away), { gasLimit: 800000 });
       await tx.wait();
       setTxStatus(TxStatus.SUCCESS);
@@ -290,26 +312,30 @@ const AppContent: React.FC = () => {
   const StatusOverlay = () => {
     if (txStatus === TxStatus.IDLE) return null;
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-6 animate-in fade-in duration-200">
-        <div className="w-full max-w-xs bg-[#1A1A1A] border border-gray-800 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-lg p-6 animate-in fade-in duration-200">
+        <div className="w-full max-w-xs bg-black/80 border border-white/10 rounded-[32px] p-8 flex flex-col items-center text-center shadow-2xl transform transition-all scale-100">
           {txStatus === TxStatus.PENDING && (
             <div className="mb-6 relative">
               <div className="w-20 h-20 border-4 border-gray-800 rounded-full"></div>
               <div className="w-20 h-20 border-4 border-celo-green rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
             </div>
           )}
-          {txStatus === TxStatus.SUCCESS && <CheckCircle2 className="text-celo-green mb-6 animate-in zoom-in duration-300" size={72} />}
+          {txStatus === TxStatus.SUCCESS && (
+            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 animate-[bounce_1s_infinite]">
+               <PartyPopper className="text-celo-green" size={40} />
+            </div>
+          )}
           {txStatus === TxStatus.ERROR && <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6"><X className="text-red-500" size={40} /></div>}
           
           <h3 className="text-xl font-bold mb-2 text-white">
-            {txStatus === TxStatus.PENDING ? "Processing..." : txStatus === TxStatus.SUCCESS ? "Success!" : "Error"}
+            {txStatus === TxStatus.PENDING ? "Processing..." : txStatus === TxStatus.SUCCESS ? "Awesome!" : "Error"}
           </h3>
           <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-full break-words">{statusMsg}</p>
           
           {txStatus !== TxStatus.PENDING && (
             <button 
               onClick={() => setTxStatus(TxStatus.IDLE)}
-              className="w-full py-3 bg-gray-800 rounded-xl font-bold hover:bg-gray-700 transition text-white"
+              className="w-full py-3 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition shadow-lg"
             >
               Close
             </button>
@@ -322,23 +348,22 @@ const AppContent: React.FC = () => {
   const BettingSheet = () => {
     if (!selectedMatch) return null;
     
-    // Check if already predicted
     const existingPrediction = myPredictions.find(p => p.matchId === selectedMatch.id);
     
     return (
       <div className="fixed inset-0 z-[60] flex flex-col justify-end">
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onClick={() => setSelectedMatch(null)} />
-        <div className="relative bg-[#1A1A1A] rounded-t-[32px] border-t border-gray-700 p-6 animate-in slide-in-from-bottom duration-300 safe-bottom shadow-2xl">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setSelectedMatch(null)} />
+        <div className="relative bg-black/80 backdrop-blur-xl rounded-t-[32px] border-t border-white/10 p-6 animate-in slide-in-from-bottom duration-300 safe-bottom shadow-2xl">
           <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-8 opacity-50" />
           <div className="text-center mb-8">
-            <h3 className="text-sm text-gray-400 uppercase tracking-wider font-bold mb-1">Make Your Prediction</h3>
-            <div className="text-2xl font-bold text-white">
-               {selectedMatch.homeTeam} <span className="text-gray-600 text-lg mx-1">vs</span> {selectedMatch.awayTeam}
+            <h3 className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-2">Make Your Prediction</h3>
+            <div className="text-3xl font-black text-white tracking-tight">
+               {selectedMatch.homeTeam} <span className="text-gray-600 text-xl mx-2 font-light">vs</span> {selectedMatch.awayTeam}
             </div>
           </div>
 
           {existingPrediction ? (
-             <div className="bg-celo-green/10 border border-celo-green/20 rounded-2xl p-6 text-center mb-6">
+             <div className="bg-celo-green/10 border border-celo-green/20 rounded-3xl p-6 text-center mb-6 backdrop-blur-sm">
                 <CheckCircle2 className="mx-auto text-celo-green mb-3" size={32} />
                 <h4 className="text-celo-green font-bold text-lg mb-1">Prediction Placed</h4>
                 <p className="text-gray-400 text-sm">You predicted {existingPrediction.prediction.homeScore} - {existingPrediction.prediction.awayScore}</p>
@@ -349,46 +374,46 @@ const AppContent: React.FC = () => {
                  <div className="flex flex-col items-center gap-2">
                     <input 
                       type="number" 
-                      placeholder="-"
+                      placeholder="0"
                       value={predictHome}
                       onChange={(e) => setPredictHome(e.target.value)}
-                      className="w-20 h-20 text-center text-4xl font-bold bg-black rounded-2xl border border-gray-700 focus:border-celo-green focus:ring-2 focus:ring-celo-green/20 outline-none text-white placeholder-gray-700"
+                      className="w-20 h-24 text-center text-5xl font-bold bg-white/5 rounded-2xl border border-white/10 focus:border-celo-green focus:bg-white/10 focus:ring-2 focus:ring-celo-green/20 outline-none text-white placeholder-gray-700 transition-all"
                     />
-                    <span className="text-xs font-bold text-gray-500 uppercase">Home</span>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Home</span>
                  </div>
-                 <span className="text-gray-600 text-2xl font-black">:</span>
+                 <span className="text-gray-600 text-3xl font-light opacity-50">:</span>
                  <div className="flex flex-col items-center gap-2">
                     <input 
                       type="number" 
-                      placeholder="-"
+                      placeholder="0"
                       value={predictAway}
                       onChange={(e) => setPredictAway(e.target.value)}
-                      className="w-20 h-20 text-center text-4xl font-bold bg-black rounded-2xl border border-gray-700 focus:border-celo-green focus:ring-2 focus:ring-celo-green/20 outline-none text-white placeholder-gray-700"
+                      className="w-20 h-24 text-center text-5xl font-bold bg-white/5 rounded-2xl border border-white/10 focus:border-celo-green focus:bg-white/10 focus:ring-2 focus:ring-celo-green/20 outline-none text-white placeholder-gray-700 transition-all"
                     />
-                    <span className="text-xs font-bold text-gray-500 uppercase">Away</span>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Away</span>
                  </div>
               </div>
 
-              <div className="bg-gray-900 rounded-xl p-4 mb-6 border border-gray-800">
+              <div className="bg-white/5 rounded-2xl p-4 mb-6 border border-white/5 backdrop-blur-md">
                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-400">Entry Fee</span>
+                    <span className="text-gray-400 font-medium">Entry Fee</span>
                     <span className="text-white font-bold">{ENTRY_FEE_DISPLAY}</span>
                  </div>
                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Potential Win</span>
-                    <span className="text-celo-gold font-bold">~{formatCurrency(selectedMatch.prizePool)} CELO</span>
+                    <span className="text-gray-400 font-medium">Potential Win</span>
+                    <span className="text-celo-gold font-bold shadow-glow">~{formatCurrency(selectedMatch.prizePool)} CELO</span>
                  </div>
               </div>
 
               <button 
                 onClick={handlePredict}
-                className="w-full py-4 bg-celo-green text-celo-darker font-bold text-lg rounded-2xl hover:bg-emerald-400 transition-all shadow-lg shadow-celo-green/20 mb-2 transform active:scale-[0.98]"
+                className="w-full py-4 bg-gradient-to-r from-celo-green to-emerald-500 text-black font-bold text-lg rounded-2xl hover:brightness-110 transition-all shadow-[0_0_20px_rgba(53,208,127,0.3)] mb-2 transform active:scale-[0.98]"
               >
                 Place Bet
               </button>
             </>
           )}
-          <button onClick={() => setSelectedMatch(null)} className="w-full py-3 text-gray-500 font-medium text-sm">Close</button>
+          <button onClick={() => setSelectedMatch(null)} className="w-full py-3 text-gray-500 font-medium text-sm hover:text-white transition-colors">Cancel</button>
         </div>
       </div>
     );
