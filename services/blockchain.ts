@@ -1,6 +1,6 @@
 
 import { ethers } from 'ethers';
-import { CONTRACT_ABI, CONTRACT_ADDRESS, RPC_URL, HACKATHON_PRIVATE_KEY } from '../constants';
+import { CONTRACT_ABI, CONTRACT_ADDRESS, RPC_URL, HACKATHON_PRIVATE_KEY, CELO_CHAIN_ID } from '../constants';
 
 // Global Provider for Read-Only access
 const jsonProvider = new ethers.JsonRpcProvider(RPC_URL);
@@ -18,6 +18,49 @@ export const isMiniPay = () => {
     return window.ethereum && window.ethereum.isMiniPay;
 };
 
+// --- NETWORK SWITCHING ---
+export const switchToCeloSepolia = async () => {
+    // @ts-ignore
+    if (!window.ethereum) return;
+
+    const hexChainId = "0x" + CELO_CHAIN_ID.toString(16);
+    
+    try {
+        // @ts-ignore
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: hexChainId }],
+        });
+    } catch (switchError: any) {
+        // This error code indicates that the chain has not been added to MetaMask.
+        if (switchError.code === 4902) {
+            try {
+                // @ts-ignore
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                        {
+                            chainId: hexChainId,
+                            chainName: 'Celo Sepolia Testnet',
+                            nativeCurrency: {
+                                name: 'CELO',
+                                symbol: 'CELO',
+                                decimals: 18,
+                            },
+                            rpcUrls: ['https://forno.celo-sepolia.celo-testnet.org'],
+                            blockExplorerUrls: ['https://celo-sepolia.blockscout.com'],
+                        },
+                    ],
+                });
+            } catch (addError) {
+                console.error("Failed to add Celo Sepolia", addError);
+            }
+        } else {
+            console.error("Failed to switch network", switchError);
+        }
+    }
+};
+
 // --- 1. ADMIN SIGNER (ALWAYS PRIVATE KEY) ---
 // This ensures Admin actions (Create, Settle) never fail
 export const getAdminSigner = () => {
@@ -33,6 +76,11 @@ export const getUserSigner = async () => {
     // MiniPay Auto-Detection: If inside MiniPay, always try to use it first
     if (isMiniPay() || (useRealWallet && injectedProvider)) {
         try {
+            // Force Network Switch First
+            if (!isMiniPay()) {
+                await switchToCeloSepolia();
+            }
+
             const provider = new ethers.BrowserProvider(injectedProvider);
             const signer = await provider.getSigner(); 
             return signer;
