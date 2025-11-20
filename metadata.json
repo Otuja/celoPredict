@@ -1,0 +1,5 @@
+{
+  "name": "CeloPredict",
+  "description": "A decentralized soccer match prediction market on the Celo Blockchain. Predict scores, compete with others, and win prizes in CELO.",
+  "requestFramePermissions": []
+}
