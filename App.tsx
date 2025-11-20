@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ethers } from 'ethers';
 import { CheckCircle2, X, Wallet as WalletIcon, PartyPopper, HelpCircle, ScrollText, Info, AlertTriangle, LogOut, Zap } from 'lucide-react';
 import { ENTRY_FEE_DISPLAY } from './constants';
@@ -84,7 +84,7 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
 };
 
 const AppContent: React.FC = () => {
-  const { currentAccount, userBalance, refreshData } = useBlockchain();
+  const { currentAccount, userBalance, refreshData, isConnected, isDevWallet } = useBlockchain();
 
   // State
   const [matches, setMatches] = useState<Match[]>([]);
@@ -99,6 +99,7 @@ const AppContent: React.FC = () => {
   
   // Toast State
   const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+  const prevAccountRef = useRef<string | null>(null);
 
   // Betting Form
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -108,6 +109,15 @@ const AppContent: React.FC = () => {
   const showToast = (msg: string, type: 'success' | 'error') => {
     setToast({ msg, type });
   };
+
+  // Wallet Connection Toast Logic
+  useEffect(() => {
+    if (currentAccount && currentAccount !== prevAccountRef.current) {
+      const msg = isDevWallet ? "Dev Wallet Created & Ready" : "Personal Wallet Connected";
+      showToast(msg, "success");
+      prevAccountRef.current = currentAccount;
+    }
+  }, [currentAccount, isDevWallet]);
 
   const fetchData = useCallback(async (showLoading = false) => {
     if(showLoading) setIsLoading(true);
