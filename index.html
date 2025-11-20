@@ -2,8 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>CeloPredict</title>
+    
+    <!-- APP ICONS -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png" />
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png" />
+    <meta name="theme-color" content="#0A0A0A" />
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
@@ -76,16 +82,18 @@
     </style>
 
     <script type="importmap">
-    {
-      "imports": {
-        "react": "https://aistudiocdn.com/react@^19.2.0",
-        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-        "react/": "https://aistudiocdn.com/react@^19.2.0/",
-        "ethers": "https://aistudiocdn.com/ethers@^6.15.0",
-        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
-      }
-    }
-    </script>
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "ethers": "https://aistudiocdn.com/ethers@^6.15.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { PageView, Match, Prediction } from '../types';
 import { formatTimestamp } from '../services/blockchain';
 import { useBlockchain } from '../contexts/BlockchainContext';
-import { Share2, Copy } from 'lucide-react';
+import { Share2, Copy, Clock, AlertCircle } from 'lucide-react';
 
 interface MyBetsProps {
   myPredictions: {matchId: string, prediction: Prediction, matchData: Match}[];
@@ -31,6 +32,22 @@ const MyBets: React.FC<MyBetsProps> = ({ myPredictions, onNavigateHome }) => {
       }
   };
 
+  const getStatusBadge = (match: Match, isWinner: boolean) => {
+      const now = Date.now() / 1000;
+      const isTimeOver = now > Number(match.kickoffTime);
+
+      if (match.resultsSubmitted) {
+          if (isWinner) return <span className="text-xs font-bold px-2.5 py-1 rounded-lg border text-celo-gold bg-yellow-900/10 border-yellow-900/30">WON</span>;
+          return <span className="text-xs font-bold px-2.5 py-1 rounded-lg border text-red-400 bg-red-900/10 border-red-900/30">LOST</span>;
+      }
+
+      if (isTimeOver) {
+          return <span className="text-xs font-bold px-2.5 py-1 rounded-lg border text-orange-400 bg-orange-900/10 border-orange-900/30 flex items-center gap-1"><Clock size={12}/> PENDING DECISION</span>;
+      }
+
+      return <span className="text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide bg-green-900/30 text-celo-green border border-green-900/50">OPEN</span>;
+  };
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 px-4 pt-8 pb-32">
        <h2 className="text-2xl font-bold text-white mb-6">Prediction History</h2>
@@ -45,10 +62,13 @@ const MyBets: React.FC<MyBetsProps> = ({ myPredictions, onNavigateHome }) => {
        ) : (
          <div className="space-y-4">
            {myPredictions.map((item, idx) => {
+              const now = Date.now() / 1000;
+              const isTimeOver = now > Number(item.matchData.kickoffTime);
               const isFinished = item.matchData.resultsSubmitted;
               const isWinner = isFinished && 
                                item.prediction.homeScore === item.matchData.finalHomeScore && 
                                item.prediction.awayScore === item.matchData.finalAwayScore;
+              
               return (
                 <div key={idx} className="bg-[#1A1A1A] border border-gray-800 rounded-3xl p-5 flex flex-col gap-4 relative overflow-hidden">
                    {/* Background accent */}
@@ -56,16 +76,11 @@ const MyBets: React.FC<MyBetsProps> = ({ myPredictions, onNavigateHome }) => {
 
                    <div className="flex justify-between items-start relative z-10">
                       <div className="flex items-center gap-2">
-                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide ${isFinished ? 'bg-gray-800 text-gray-400' : 'bg-green-900/30 text-celo-green border border-green-900/50'}`}>
-                            {isFinished ? "Settled" : "Open"}
+                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide ${isFinished ? 'bg-gray-800 text-gray-400' : 'bg-gray-800 text-gray-300'}`}>
+                            {formatTimestamp(item.prediction.timestamp)}
                          </span>
-                         <span className="text-xs text-gray-500 font-medium">{formatTimestamp(item.prediction.timestamp)}</span>
                       </div>
-                      {isFinished && (
-                         <div className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${isWinner ? 'text-celo-gold bg-yellow-900/10 border-yellow-900/30' : 'text-red-400 bg-red-900/10 border-red-900/30'}`}>
-                            {isWinner ? "WON" : "LOST"}
-                         </div>
-                      )}
+                      {getStatusBadge(item.matchData, isWinner)}
                    </div>
 
                    <div className="flex justify-between items-center px-1">
@@ -94,6 +109,13 @@ const MyBets: React.FC<MyBetsProps> = ({ myPredictions, onNavigateHome }) => {
                      <div className="flex justify-center text-xs font-medium text-gray-500 bg-gray-900/50 py-2 rounded-xl">
                         Official Result: <span className="text-white ml-2">{item.matchData.finalHomeScore} - {item.matchData.finalAwayScore}</span>
                      </div>
+                   )}
+
+                   {!isFinished && isTimeOver && (
+                       <div className="flex items-start gap-2 text-[10px] text-orange-300 bg-orange-900/10 p-2 rounded-lg border border-orange-900/20">
+                           <AlertCircle size={14} className="shrink-0" />
+                           <span>Waiting for Admin to settle results. Winnings will appear in Wallet after settlement.</span>
+                       </div>
                    )}
                 </div>
               );

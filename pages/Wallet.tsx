@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Wallet as WalletIcon, Award, Users, ExternalLink, Zap } from 'lucide-react';
+import { Wallet as WalletIcon, Award, Users, ExternalLink, Zap, RefreshCw } from 'lucide-react';
 import { useBlockchain } from '../contexts/BlockchainContext';
 import { formatCurrency } from '../services/blockchain';
 
@@ -10,11 +10,19 @@ interface WalletProps {
 }
 
 const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
-  const { isConnected, currentAccount, userBalance, connectWallet, isConnecting } = useBlockchain();
+  const { isConnected, currentAccount, userBalance, connectWallet, isConnecting, refreshData } = useBlockchain();
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 px-4 pt-8 pb-32">
-      <h2 className="text-2xl font-bold text-white mb-6">My Wallet</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-white">My Wallet</h2>
+        <button 
+            onClick={() => refreshData()} 
+            className="p-2 bg-gray-800 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 active:rotate-180 transition-all"
+        >
+            <RefreshCw size={18} />
+        </button>
+      </div>
       
       {!isConnected ? (
         <div className="bg-[#1A1A1A] rounded-3xl p-8 text-center border border-white/5">
