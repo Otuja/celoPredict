@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CeloPredict</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- TAILWIND CDN (Required for Web Preview) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -24,16 +27,18 @@
                 light: '#FFFFFF',
               }
             }
-          }
-        }
+          },
+        },
       }
     </script>
+
     <style>
       body {
         background-color: #111111;
         color: #ffffff;
       }
-      /* Custom scrollbar for sleek look */
+
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
       }
@@ -47,20 +52,43 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #35D07F; 
       }
+
+      /* Hide scrollbar utilities */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+
+      /* Safe area padding */
+      .safe-bottom {
+          padding-bottom: env(safe-area-inset-bottom, 20px);
+      }
+      .pb-safe {
+          padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px));
+      }
+      
+      .cursor-wait {
+          cursor: wait;
+      }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "ethers": "https://aistudiocdn.com/ethers@^6.15.0"
-  }
-}
-</script>
-</head>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "ethers": "https://aistudiocdn.com/ethers@^6.15.0",
+        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
+      }
+    }
+    </script>
+  </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
