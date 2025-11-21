@@ -1,0 +1,23 @@
+{
+  "name": "celopredict-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for CeloPredict dApp",
+  "scripts": {
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network celoSepolia",
+    "deploy:alfajores": "hardhat run scripts/deploy.js --network alfajores",
+    "deploy:celo": "hardhat run scripts/deploy.js --network celo",
+    "interact": "hardhat run scripts/interact.js --network celoSepolia",
+    "verify": "hardhat verify --network celoSepolia",
+    "compile": "hardhat compile",
+    "clean": "hardhat clean"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.4",
+    "dotenv": "^16.3.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.1"
+  }
+}
