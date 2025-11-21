@@ -2,8 +2,16 @@
 import { ethers } from 'ethers';
 import { CONTRACT_ABI, CONTRACT_ADDRESS, RPC_URL, HACKATHON_PRIVATE_KEY, CELO_CHAIN_ID } from '../constants';
 
-// Global Provider for Read-Only access
-const jsonProvider = new ethers.JsonRpcProvider(RPC_URL);
+// Optimize Provider: Define static network to prevent "detectNetwork" calls which cause "Failed to fetch"
+const network = ethers.Network.from({
+    chainId: CELO_CHAIN_ID,
+    name: 'celo-sepolia'
+});
+
+// Global Provider for Read-Only access with static network optimization
+const jsonProvider = new ethers.JsonRpcProvider(RPC_URL, network, {
+    staticNetwork: true
+});
 
 // State to track if user explicitly wants to use real wallet
 let useRealWallet = false;
@@ -112,7 +120,7 @@ export const getUserBalance = async (address: string) => {
         const balance = await jsonProvider.getBalance(address);
         return ethers.formatEther(balance);
     } catch (e) {
-        console.error("Error fetching balance", e);
+        // Fail silently and return 0.0 to prevent UI crash on network hiccup
         return "0.0";
     }
 };
@@ -122,7 +130,7 @@ export const getContractBalance = async () => {
         const balance = await jsonProvider.getBalance(CONTRACT_ADDRESS);
         return ethers.formatEther(balance);
     } catch (e) {
-        console.error("Error fetching contract balance", e);
+        // Fail silently and return 0.0
         return "0.0";
     }
 }
@@ -139,17 +147,13 @@ export const getGlobalLeaderboard = async (): Promise<LeaderboardEntry[]> => {
     try {
         const contract = getReadOnlyContract();
         
-        // 1. Get Total Match Count using the newly added matchCounter function
-        // Using 'try/catch' because getting total matches is critical
+        // 1. Get Total Match Count
         let totalMatches = 0;
         try {
              const count = await contract.matchCounter();
              totalMatches = Number(count);
         } catch (e) {
-             console.warn("Could not fetch match counter, defaulting to active matches approach which might be incomplete.");
-             // Fallback if matchCounter fails (though it shouldn't with correct ABI)
-             const active = await contract.getActiveMatches();
-             // This is imperfect but a safety net
+             console.warn("Could not fetch match counter, defaulting to 0.");
              return []; 
         }
 

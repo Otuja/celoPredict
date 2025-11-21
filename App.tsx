@@ -99,7 +99,10 @@ const AppContent: React.FC = () => {
   
   // Toast State
   const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+  
+  // Tracking refs for toast logic
   const prevAccountRef = useRef<string | null>(null);
+  const prevDevModeRef = useRef<boolean>(true);
 
   // Betting Form
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -112,10 +115,32 @@ const AppContent: React.FC = () => {
 
   // Wallet Connection Toast Logic
   useEffect(() => {
-    if (currentAccount && currentAccount !== prevAccountRef.current) {
-      const msg = isDevWallet ? "Dev Wallet Created & Ready" : "Personal Wallet Connected";
-      showToast(msg, "success");
+    const hasAccount = !!currentAccount;
+    const accountChanged = currentAccount !== prevAccountRef.current;
+    const modeChanged = isDevWallet !== prevDevModeRef.current;
+
+    if (hasAccount && (accountChanged || modeChanged)) {
+      let msg = "";
+      
+      // Priority 1: Mode Switch
+      if (modeChanged) {
+         if (!isDevWallet) msg = "Personal Wallet Added Successfully!";
+         else msg = "Switched to Dev Wallet";
+      } 
+      // Priority 2: Account Switch within same mode
+      else if (accountChanged) {
+         if (prevAccountRef.current === null) {
+             // First load
+             msg = isDevWallet ? "Dev Wallet Ready" : "Wallet Connected";
+         } else {
+             msg = "Wallet Account Changed";
+         }
+      }
+
+      if (msg) showToast(msg, "success");
+      
       prevAccountRef.current = currentAccount;
+      prevDevModeRef.current = isDevWallet;
     }
   }, [currentAccount, isDevWallet]);
 
@@ -214,7 +239,7 @@ const AppContent: React.FC = () => {
     const interval = setInterval(() => {
        fetchData(false);
        refreshData();
-    }, 5000); // Poll every 5 seconds
+    }, 10000); // Poll every 10 seconds to reduce RPC load
     return () => clearInterval(interval);
   }, [fetchData, refreshData]);
 
