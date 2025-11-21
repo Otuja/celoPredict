@@ -1,0 +1,18 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "CeloPredict",
+    "iconUrl": "https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png",
+    "homeUrl": "https://celo-predict.vercel.app/",
+    "imageUrl": "https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png",
+    "buttonTitle": "Bet Now",
+    "splashImageUrl": "https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png",
+    "splashBackgroundColor": "#0A0A0A",
+    "requiredChains": ["eip155:8453"],
+    "requiredCapabilities": [
+      "actions.signIn",
+      "wallet.getEthereumProvider",
+      "actions.swapToken"
+    ]
+  }
+}

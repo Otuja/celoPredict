@@ -4,6 +4,9 @@ import { Match, Prediction } from '../types';
 import { formatCurrency, formatTimestamp } from '../services/blockchain';
 import { useBlockchain } from '../contexts/BlockchainContext';
 
+import { sdk } from "@farcaster/miniapp-sdk";
+
+
 interface HomeProps {
   matches: Match[];
   myPredictions: {matchId: string, prediction: Prediction, matchData: Match}[];
@@ -19,6 +22,22 @@ const Home: React.FC<HomeProps> = ({ matches, myPredictions, isLoading, onSelect
     const interval = setInterval(() => setNow(Date.now() / 1000), 5000); // Update every 5s for live indicators
     return () => clearInterval(interval);
   }, []);
+
+
+  // use effect for facaster mini app sdk initialization
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await sdk.actions.ready();
+        console.log("Facaster Mini App is ready");
+      } catch (err) {
+        console.error("Facaster Mini App failed to initialize:", err);
+      }
+    };
+
+    init();
+  }, []);
+  
 
   const sortedMatches = useMemo(() => {
     if (!matches.length) return [];
