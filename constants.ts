@@ -19,13 +19,13 @@ export const IS_HACKATHON_MODE = getEnv('VITE_IS_HACKATHON_MODE', true) === 'tru
 
 // 2. YOUR PRIVATE KEY (Corresponds to 0x9af1...)
 // We try to read from .env first. If that fails (preview mode), we fall back to the hardcoded string.
-export const HACKATHON_PRIVATE_KEY = getEnv('VITE_HACKATHON_PRIVATE_KEY', "5aa942a429572831ec4895a85a6c62225835a7edd97a961432a9968ec1b641e6");
+export const HACKATHON_PRIVATE_KEY = getEnv('VITE_HACKATHON_PRIVATE_KEY', "");
 
 // 3. SMART CONTRACT ADDRESS
-export const CONTRACT_ADDRESS = getEnv('VITE_CONTRACT_ADDRESS', "0x630fcEBE028f80C4420E5684ACab17b001ce4975");
+export const CONTRACT_ADDRESS = getEnv('VITE_CONTRACT_ADDRESS', "");
 
 // 4. ADMIN WALLET ADDRESS
-export const ADMIN_ADDRESS = getEnv('VITE_ADMIN_ADDRESS', "0x9af10ad426d5d807f3309e1a3ca321332e2f54a5");
+export const ADMIN_ADDRESS = getEnv('VITE_ADMIN_ADDRESS', "");
 
 // ==========================================
 // NETWORK CONFIGURATION

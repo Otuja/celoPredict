@@ -56,7 +56,7 @@ npm install
 ### 3. Configure Environment
 Create a `.env` file in the root directory. You can use the example provided:
 ```bash
-cp .env.example .env
+cp .env.example 
 ```
 *Note: For the Hackathon Demo, the app includes a fallback "Dev Wallet" private key in the code so it works out-of-the-box. For production, ensure you set `VITE_IS_HACKATHON_MODE=false` in the .env file.*
 
