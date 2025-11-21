@@ -23,7 +23,13 @@ export const setWalletPreference = (enable: boolean) => {
 // Check if running in MiniPay
 export const isMiniPay = () => {
     // @ts-ignore
-    return window.ethereum && window.ethereum.isMiniPay;
+    return typeof window !== 'undefined' && window.ethereum && window.ethereum.isMiniPay;
+};
+
+// Check if any wallet is injected (MetaMask, Valora, CeloExtension, MiniPay)
+export const hasInjectedProvider = () => {
+    // @ts-ignore
+    return typeof window !== 'undefined' && (!!window.ethereum || !!window.celo);
 };
 
 // --- NETWORK SWITCHING ---
@@ -79,7 +85,7 @@ export const getAdminSigner = () => {
 // --- 2. USER SIGNER (HYBRID) ---
 export const getUserSigner = async () => {
     // @ts-ignore
-    const injectedProvider = window.ethereum || window.celo;
+    const injectedProvider = typeof window !== 'undefined' ? (window.ethereum || window.celo) : null;
 
     // MiniPay Auto-Detection: If inside MiniPay, always try to use it first
     if (isMiniPay() || (useRealWallet && injectedProvider)) {

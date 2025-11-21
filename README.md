@@ -1,5 +1,5 @@
 
-# ⚽ CeloPredict
+# ⚽ CeloPredict(https://celo-predict.vercel.app/)
 
 **The Mobile-First Prediction Market for Emerging Markets.**
 
@@ -44,7 +44,7 @@ If you are a developer or judge cloning this repo to run locally, follow these s
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/celo-predict.git
+git clone https://github.com/Otuja/celoPredict.git
 cd celo-predict
 ```
 
