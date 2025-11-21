@@ -2,9 +2,9 @@
   "miniapp": {
     "version": "1",
     "name": "CeloPredict",
-    "iconUrl": "https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png",
+    "iconUrl": "/celo.png",
     "homeUrl": "https://celo-predict.vercel.app/",
-    "imageUrl": "https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png",
+    "imageUrl": "/celo.png",
     "buttonTitle": "Bet Now",
     "splashImageUrl": "https://raw.githubusercontent.com/valora-inc/dapp-list/main/assets/celo-logo.png",
     "splashBackgroundColor": "#0A0A0A",
