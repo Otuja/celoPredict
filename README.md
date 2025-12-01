@@ -1,7 +1,7 @@
 
 # ⚽ CeloPredict(https://celo-predict.vercel.app/)
 
-** youtube link (https://youtu.be/VVEs1fDBLiM) **
+**youtube link (https://youtu.be/VVEs1fDBLiM)**
 
 **The Mobile-First Prediction Market for Emerging Markets.**
 
