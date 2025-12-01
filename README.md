@@ -1,6 +1,8 @@
 
 # ⚽ CeloPredict(https://celo-predict.vercel.app/)
 
+**Youtube link(https://youtu.be/mJiqk3FDRwE?feature=shared)**
+
 **The Mobile-First Prediction Market for Emerging Markets.**
 
 ![Celo Network](https://img.shields.io/badge/Network-Celo%20Sepolia-green)
