@@ -58,7 +58,7 @@ npm run verify 0xYOUR_CONTRACT_ADDRESS
 - **Entry Fee:** 0.5 cUSD per prediction
 - **Platform Fee:** 5% of prize pool
 - **Max Score:** 20 goals per team
-- **Network:** Celo Alfajores Testnet (44787)
+- **Network:** Celo Sepolia Testnet (11142220)
 
 ## Gas Optimization
 
