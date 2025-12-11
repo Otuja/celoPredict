@@ -59,7 +59,7 @@ const Wallet: React.FC<WalletProps> = ({ userWinnings, onClaim }) => {
                 <div className="text-4xl font-bold tracking-tight mb-4">{parseFloat(userBalance).toFixed(2)} <span className="text-lg">CELO</span></div>
                 <div className="flex items-center gap-2 text-xs font-medium bg-black/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
                   <div className="w-2 h-2 rounded-full animate-pulse bg-white"></div>
-                  Celo Sepolia Testnet
+                  Celo Mainnet
                 </div>
               </div>
            </div>

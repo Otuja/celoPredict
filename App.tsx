@@ -40,7 +40,7 @@ const Header = ({ onOpenHelp }: { onOpenHelp: () => void }) => {
                <h1 className="text-lg font-bold text-white leading-none tracking-tight flex items-center gap-1">
                  Celo<span className="text-celo-green">Predict</span>
                </h1>
-               <span className="text-[10px] font-medium text-gray-500 tracking-wide uppercase">Sepolia Market</span>
+               <span className="text-[10px] font-medium text-gray-500 tracking-wide uppercase">Celo Mainnet</span>
             </div>
          </div>
          
@@ -275,7 +275,7 @@ const AppContent: React.FC = () => {
     try {
       // USER ACTION: getContract(false) -> Checks User Wallet First
       const contract = await getContract(false);
-      const entryFee = ethers.parseEther("0.5");
+      const entryFee = ethers.parseEther("0.2");
       
       // Check if already predicted locally first
       const hasPredicted = myPredictions.some(p => p.matchId === selectedMatch.id);
@@ -283,7 +283,7 @@ const AppContent: React.FC = () => {
           throw new Error("You have already predicted this match!");
       }
       
-      // High gas limit to ensure it works on testnet
+      // High gas limit to ensure it works on mainnet
       const tx = await contract.predictMatch(
         selectedMatch.id,
         parseInt(predictHome),
@@ -500,7 +500,7 @@ const AppContent: React.FC = () => {
                  </div>
                  <div className="flex gap-3">
                     <span className="w-5 h-5 rounded bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
-                    <p className="text-gray-500 text-xs">Entry Fee is fixed at <strong>0.5 CELO</strong>.</p>
+                    <p className="text-gray-500 text-xs">Entry Fee is fixed at <strong>0.2 CELO</strong>.</p>
                  </div>
                  <div className="flex gap-3">
                     <span className="w-5 h-5 rounded bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>

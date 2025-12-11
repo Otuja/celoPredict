@@ -20,16 +20,7 @@ async function main() {
   const address = await celoPredict.getAddress();
 
   // Determine the correct explorer URL based on network
-  let explorerUrl;
-  if (chainId === 11142220) {
-    explorerUrl = `https://celo-sepolia.blockscout.com/address/${address}`;
-  } else if (chainId === 44787) {
-    explorerUrl = `https://alfajores.celoscan.io/address/${address}`;
-  } else if (chainId === 42220) {
-    explorerUrl = `https://celoscan.io/address/${address}`;
-  } else {
-    explorerUrl = "Unknown network";
-  }
+  let explorerUrl = `https://celoscan.io/address/${address}`;
 
   console.log("✅ CeloPredict deployed successfully!");
   console.log("📋 Contract Address:", address);
@@ -42,7 +33,7 @@ async function main() {
   console.log("✅ Confirmed!\n");
 
   // Create sample matches
-  console.log("🎮 Creating sample matches...");
+  console.log("🎮 Creating sample match...");
   const now = Math.floor(Date.now() / 1000);
   const oneDay = 86400;
 
@@ -56,32 +47,14 @@ async function main() {
     await tx1.wait();
     console.log("✅ Match 1: Arsenal vs Chelsea");
 
-    const tx2 = await celoPredict.createMatch(
-      "Man United",
-      "Liverpool",
-      now + oneDay * 2,
-      { gasLimit: 500000 }
-    );
-    await tx2.wait();
-    console.log("✅ Match 2: Man United vs Liverpool");
-
-    const tx3 = await celoPredict.createMatch(
-      "Barcelona",
-      "Real Madrid",
-      now + oneDay * 3,
-      { gasLimit: 500000 }
-    );
-    await tx3.wait();
-    console.log("✅ Match 3: Barcelona vs Real Madrid");
-
     console.log("\n🎉 Deployment complete!\n");
   } catch (error) {
-    console.log("⚠️  Could not create sample matches:", error.message);
-    console.log("You can create them manually later.\n");
+    console.log("⚠️  Could not create sample match:", error.message);
+    console.log("You can create it manually later.\n");
   }
 
   // Verify contract (optional)
-  if (process.env.CELOSCAN_API_KEY && chainId !== 11142220) {
+  if (process.env.CELOSCAN_API_KEY) {
     console.log("🔍 Verifying contract...");
     try {
       await hre.run("verify:verify", {
@@ -100,15 +73,7 @@ async function main() {
   console.log("2. Add it to your frontend .env.local:");
   console.log(`   NEXT_PUBLIC_CONTRACT_ADDRESS=${address}`);
   console.log(`   NEXT_PUBLIC_CHAIN_ID=${chainId}`);
-  if (chainId === 11142220) {
-    console.log(
-      `   NEXT_PUBLIC_CELO_RPC_URL=https://forno.celo-sepolia.celo-testnet.org`
-    );
-  } else if (chainId === 44787) {
-    console.log(
-      `   NEXT_PUBLIC_CELO_RPC_URL=https://alfajores-forno.celo-testnet.org`
-    );
-  }
+  console.log(`   NEXT_PUBLIC_CELO_RPC_URL=https://forno.celo.org`);
   console.log(
     "3. Copy the ABI from artifacts/contracts/CeloPredict.sol/CeloPredict.json"
   );

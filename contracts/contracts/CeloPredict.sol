@@ -33,7 +33,7 @@ contract CeloPredict is ReentrancyGuard, Ownable {
     
     // State variables
     uint256 public matchCounter;
-    uint256 public entryFee = 0.5 ether; // 0.5 cUSD
+    uint256 public entryFee = 0.2 ether; // 0.2 cUSD
     uint256 public platformFeePercent = 5; // 5% platform fee
     
     mapping(uint256 => Match) public matches;

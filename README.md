@@ -5,7 +5,7 @@
 
 **The Mobile-First Prediction Market for Emerging Markets.**
 
-![Celo Network](https://img.shields.io/badge/Network-Celo%20Sepolia-green)
+![Celo Network](https://img.shields.io/badge/Network-Celo%20Mainnet-green)
 ![Status](https://img.shields.io/badge/Status-Hackathon%20Winning-orange)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![PWA](https://img.shields.io/badge/PWA-MiniPay%20Ready-purple)
@@ -99,7 +99,7 @@ Open your browser to `http://localhost:5173`.
 ## 🛠 Technical Architecture
 
 *   **Frontend**: React 18, Tailwind CSS, Lucide Icons.
-*   **Blockchain**: Celo Sepolia Testnet.
+*   **Blockchain**: Celo Mainnet.
 *   **Integration**: Ethers.js v6 with **Smart Signer Logic** (segregates Admin transactions from User transactions).
 *   **Smart Contract**: Solidity (ERC20/Native logic) with platform fee withdrawal and emergency stops.
 
@@ -113,10 +113,10 @@ Open your browser to `http://localhost:5173`.
 
 ## 🔗 Contract Details
 
-*   **Network**: Celo Sepolia Testnet
-*   **Chain ID**: `11142220`
-*   **RPC URL**: `https://forno.celo-sepolia.celo-testnet.org`
-*   **Contract Address**: `0x630fcEBE028f80C4420E5684ACab17b001ce4975`
+*   **Network**: Celo Mainnet
+*   **Chain ID**: `42220`
+*   **RPC URL**: `https://forno.celo.org`
+*   **Contract Address**: `0x3B4e4108d4e1099d334cE8800aab1a58be249319`
 
 ---
 

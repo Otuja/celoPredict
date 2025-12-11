@@ -31,11 +31,11 @@ export const ADMIN_ADDRESS = getEnv('VITE_ADMIN_ADDRESS', "");
 // NETWORK CONFIGURATION
 // ==========================================
 
-export const CELO_CHAIN_ID = 11142220; 
-export const RPC_URL = getEnv('VITE_RPC_URL', "https://forno.celo-sepolia.celo-testnet.org");
-export const BLOCK_EXPLORER = getEnv('VITE_BLOCK_EXPLORER', "https://celo-sepolia.blockscout.com");
+export const CELO_CHAIN_ID = 42220; 
+export const RPC_URL = getEnv('VITE_RPC_URL', "https://forno.celo.org");
+export const BLOCK_EXPLORER = getEnv('VITE_BLOCK_EXPLORER', "https://celoscan.io");
 
-export const ENTRY_FEE_DISPLAY = "0.5 CELO";
+export const ENTRY_FEE_DISPLAY = "0.2 CELO";
 
 // ==========================================
 // CONTRACT ABI

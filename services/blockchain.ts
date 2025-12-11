@@ -19,7 +19,7 @@ declare global {
 // Optimize Provider: Define static network to prevent "detectNetwork" calls which cause "Failed to fetch"
 const network = ethers.Network.from({
   chainId: CELO_CHAIN_ID,
-  name: "celo-sepolia",
+  name: "celo",
 });
 
 // Global Provider for Read-Only access with static network optimization
@@ -49,7 +49,7 @@ export const hasInjectedProvider = () => {
 };
 
 // --- NETWORK SWITCHING ---
-export const switchToCeloSepolia = async () => {
+export const switchToCelo = async () => {
   if (!window.ethereum) return;
 
   const hexChainId = "0x" + CELO_CHAIN_ID.toString(16);
@@ -68,19 +68,19 @@ export const switchToCeloSepolia = async () => {
           params: [
             {
               chainId: hexChainId,
-              chainName: "Celo Sepolia Testnet",
+              chainName: "Celo Mainnet",
               nativeCurrency: {
                 name: "CELO",
                 symbol: "CELO",
                 decimals: 18,
               },
-              rpcUrls: ["https://forno.celo-sepolia.celo-testnet.org"],
-              blockExplorerUrls: ["https://celo-sepolia.blockscout.com"],
+              rpcUrls: ["https://forno.celo.org"],
+              blockExplorerUrls: ["https://celoscan.io"],
             },
           ],
         });
       } catch (addError) {
-        console.error("Failed to add Celo Sepolia", addError);
+        console.error("Failed to add Celo Mainnet", addError);
       }
     } else {
       console.error("Failed to switch network", switchError);
@@ -105,7 +105,7 @@ export const getUserSigner = async () => {
     try {
       // Force Network Switch First
       if (!isMiniPay()) {
-        await switchToCeloSepolia();
+        await switchToCelo();
       }
 
       const provider = new ethers.BrowserProvider(injectedProvider);
@@ -182,9 +182,9 @@ export const refillContract = async () => {
     // 2. Get the new match ID
     const matchCount = await contract.matchCounter();
 
-    console.log("Injecting 0.5 CELO via bet...");
+    console.log("Injecting 0.2 CELO via bet...");
     // 3. Place a bet on it to inject 0.5 CELO
-    const entryFee = ethers.parseEther("0.5");
+    const entryFee = ethers.parseEther("0.2");
     const betTx = await contract.predictMatch(matchCount, 0, 0, {
       value: entryFee,
       gasLimit: 500000,
@@ -203,7 +203,7 @@ export interface LeaderboardEntry {
   address: string;
   wins: number;
   totalPredictions: number;
-  totalWinnings: number; // In ETH/CELO (Approximate based on 0.5 entry fee calculation)
+  totalWinnings: number; // In ETH/CELO (Approximate based on 0.2 entry fee calculation)
 }
 
 export const getGlobalLeaderboard = async (): Promise<LeaderboardEntry[]> => {

@@ -13,22 +13,23 @@ npm install
 cp .env.example .env
 # Add your PRIVATE_KEY to .env
 \`\`\`
+```
 
 ### 3. Compile Contract
-\`\`\`bash
+```bash
 npm run compile
-\`\`\`
+```
 
-### 4. Deploy to Sepolia Testnet
-\`\`\`bash
-npm run deploy:sepolia
-\`\`\`
+### 4. Deploy to Celo Mainnet
+```bash
+npx hardhat run scripts/deploy.js --network celo
+```
 
 **Save the contract address!** You'll need it to configure the frontend.
 
 ### 5. Verify Contract (Optional)
 After deployment, verify on Celoscan:
-\`\`\`bash
+```bash
 npm run verify 0xYOUR_CONTRACT_ADDRESS
 \`\`\`
 
@@ -55,10 +56,10 @@ npm run verify 0xYOUR_CONTRACT_ADDRESS
 
 ## Key Details
 
-- **Entry Fee:** 0.5 cUSD per prediction
+- **Entry Fee:** 0.2 CELO per prediction
 - **Platform Fee:** 5% of prize pool
 - **Max Score:** 20 goals per team
-- **Network:** Celo Sepolia Testnet (11142220)
+- **Network:** Celo Mainnet (42220)
 
 ## Gas Optimization
 
@@ -77,7 +78,7 @@ The contract uses:
 ## Troubleshooting
 
 **Deployment fails with "insufficient balance":**
-- Get testnet cUSD from faucet: https://faucet.celo.org
+- Ensure you have CELO tokens in your wallet for gas.
 
 **Contract address not found on Celoscan:**
 - Wait 30 seconds for block confirmation
